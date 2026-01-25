@@ -61,7 +61,7 @@ const WhyChooseUs: React.FC = () => {
   ];
 
   return (
-    <div className="w-full bg-gradient-to-br from-stone-100 via-neutral-100 to-gray-100 py-20 px-4 sm:px-6 lg:px-8">
+    <div className="w-full bg-linear-to-br from-stone-100 via-neutral-100 to-gray-100 py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Left Side - Images Grid */}
@@ -75,7 +75,7 @@ const WhyChooseUs: React.FC = () => {
                     alt="Luxury Perfume"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
                 </div>
               </div>
 
@@ -87,7 +87,7 @@ const WhyChooseUs: React.FC = () => {
                     alt="Artisan Craftsmanship"
                     className="w-full h-48 object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
                 </div>
               </div>
 
@@ -99,7 +99,7 @@ const WhyChooseUs: React.FC = () => {
                     alt="Natural Ingredients"
                     className="w-full h-48 object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
                 </div>
               </div>
 
@@ -111,7 +111,7 @@ const WhyChooseUs: React.FC = () => {
                     alt="Elegant Design"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
                 </div>
               </div>
             </div>
@@ -142,13 +142,13 @@ const WhyChooseUs: React.FC = () => {
                   style={{ animation: `fadeInUp 0.6s ease-out ${index * 0.15}s both` }}
                 >
                   {/* Number Badge */}
-                  <div className="absolute -top-3 -left-3 w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                  <div className="absolute -top-3 -left-3 w-12 h-12 bg-linear-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
                     <span className="text-white font-bold text-sm">{feature.number}</span>
                   </div>
 
                   <div className="flex items-start gap-4 ml-6">
                     {/* Icon */}
-                    <div className="flex-shrink-0 mt-1 p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl group-hover:scale-110 transition-transform">
+                    <div className="shrink-0 mt-1 p-3 bg-linear-to-br from-gray-50 to-gray-100 rounded-xl group-hover:scale-110 transition-transform">
                       {feature.icon}
                     </div>
 
