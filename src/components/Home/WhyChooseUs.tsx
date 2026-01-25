@@ -171,7 +171,7 @@ const WhyChooseUs: React.FC = () => {
 
             {/* CTA Button */}
             <div className="pt-4">
-              <button className="group px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+              <button className="group px-8 py-4 bg-linear-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
                 Explore Our Collections
                 <svg 
                   className="w-5 h-5 group-hover:translate-x-1 transition-transform" 
