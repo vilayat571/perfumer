@@ -1,16 +1,21 @@
 import { useState } from "react";
-import { X, ChevronRight, Check, Download } from "lucide-react";
-import { BOTTLE_IMAGES, MAGNIFIERS, PERFUME_CATEGORIES } from "../data/createPerfume";
+import { X, Check, Download } from "lucide-react";
+import {
+  BOTTLE_IMAGES,
+  MAGNIFIERS,
+  PERFUME_CATEGORIES,
+} from "../data/createPerfume";
+import Header from "../components/CreatePerfume/Header";
+import Progress from "../components/CreatePerfume/Progress";
+import BottleSection from "../components/CreatePerfume/BottleSection";
 
-interface PerfumeData {
+export interface PerfumeData {
   bottleSize: string;
   selectedPerfume: string;
   perfumeCategory: string;
   magnifier: string;
   engraving: string;
 }
-
-
 
 const CreatePerfume = () => {
   const [step, setStep] = useState(0);
@@ -19,7 +24,7 @@ const CreatePerfume = () => {
     selectedPerfume: "",
     perfumeCategory: "",
     magnifier: "",
-    engraving: ""
+    engraving: "",
   });
   const [showPerfumeModal, setShowPerfumeModal] = useState(false);
   const [showMagnifierModal, setShowMagnifierModal] = useState(false);
@@ -159,24 +164,32 @@ const CreatePerfume = () => {
         <div class="detail-label">Scent Magnifier:</div>
         <div class="detail-value">${perfumeData.magnifier}</div>
       </div>
-      ${perfumeData.engraving ? `
+      ${
+        perfumeData.engraving
+          ? `
       <div class="detail-row">
         <div class="detail-label">Personalization:</div>
         <div class="detail-value">${perfumeData.engraving}</div>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
     </div>
     
-    ${perfumeData.engraving ? `
+    ${
+      perfumeData.engraving
+        ? `
     <div class="engraving">
       <p>"${perfumeData.engraving}"</p>
     </div>
-    ` : ''}
+    `
+        : ""
+    }
     
-    <div class="price">US$ ${perfumeData.bottleSize === '30' ? '138' : perfumeData.bottleSize === '50' ? '198' : perfumeData.bottleSize === '70' ? '258' : '318'}</div>
+    <div class="price">US$ ${perfumeData.bottleSize === "30" ? "138" : perfumeData.bottleSize === "50" ? "198" : perfumeData.bottleSize === "70" ? "258" : "318"}</div>
     
     <div class="footer">
-      <p>Order Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      <p>Order Date: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
       <p>Thank you for creating your unique fragrance with us!</p>
       <p style="margin-top: 20px; font-weight: bold;">LA CRÉATION PARIS</p>
     </div>
@@ -185,16 +198,16 @@ const CreatePerfume = () => {
 </html>
     `;
 
-    const blob = new Blob([pdfContent], { type: 'text/html' });
+    const blob = new Blob([pdfContent], { type: "text/html" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `LA-CREATION-${perfumeData.selectedPerfume}-${Date.now()}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     // Close the success modal after download
     setTimeout(() => {
       setShowSuccessModal(false);
@@ -208,239 +221,56 @@ const CreatePerfume = () => {
     return true;
   };
 
-  const filteredPerfumes = Object.entries(PERFUME_CATEGORIES).reduce((acc, [category, perfumes]) => {
-    const filtered = perfumes.filter(p => 
-      p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    if (filtered.length > 0) {
-      acc[category] = filtered;
-    }
-    return acc;
-  }, {} as Record<string, typeof PERFUME_CATEGORIES[keyof typeof PERFUME_CATEGORIES]>);
+  const filteredPerfumes = Object.entries(PERFUME_CATEGORIES).reduce(
+    (acc, [category, perfumes]) => {
+      const filtered = perfumes.filter((p) =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+      if (filtered.length > 0) {
+        acc[category] = filtered;
+      }
+      return acc;
+    },
+    {} as Record<
+      string,
+      (typeof PERFUME_CATEGORIES)[keyof typeof PERFUME_CATEGORIES]
+    >,
+  );
 
   const getSelectedPerfumeImage = () => {
     for (const category of Object.values(PERFUME_CATEGORIES)) {
-      const perfume = category.find(p => p.name === perfumeData.selectedPerfume);
+      const perfume = category.find(
+        (p) => p.name === perfumeData.selectedPerfume,
+      );
       if (perfume) return perfume.image;
     }
     return "";
   };
 
   const getSelectedMagnifierImage = () => {
-    const magnifier = MAGNIFIERS.find(m => m.name === perfumeData.magnifier);
+    const magnifier = MAGNIFIERS.find((m) => m.name === perfumeData.magnifier);
     return magnifier?.image || "";
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-white to-rose-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <h1 className="text-4xl font-bold text-gray-900">LA CRÉATION</h1>
-          <p className="text-gray-600 mt-2">Personalize your Eau de Parfum with your Magnifier</p>
-        </div>
-      </div>
+      <Header />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-8 sm:mb-12 overflow-x-auto">
-          {["Size", "Perfume", "Magnifier", "Design"].map((label, idx) => (
-            <div key={idx} className="flex items-center">
-              <div className={`flex flex-col items-center ${idx < 3 ? 'mr-2 sm:mr-0' : ''}`}>
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${
-                  idx <= step ? "bg-black text-white scale-110" : "bg-gray-200 text-gray-500"
-                }`}>
-                  {idx < step ? <Check size={20} /> : idx + 1}
-                </div>
-                <span className="text-xs mt-1 font-medium hidden sm:block">{label}</span>
-              </div>
-              {idx < 3 && (
-                <div className={`w-16 sm:w-24 h-1 mx-1 sm:mx-2 transition-all ${
-                  idx < step ? "bg-black" : "bg-gray-200"
-                }`} />
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Left Side - Bottle Preview */}
-          <div className="flex items-center justify-center">
-            <div className="relative">
-              <div className="w-80 h-96 bg-linear-to-br from-amber-100 to-rose-100 rounded-3xl flex items-center justify-center shadow-2xl">
-                {perfumeData.bottleSize ? (
-                  <div className="relative">
-                    <img 
-                      src={BOTTLE_IMAGES[perfumeData.bottleSize as keyof typeof BOTTLE_IMAGES]} 
-                      alt="Bottle"
-                      className="w-48 h-auto object-contain"
-                    />
-                    {perfumeData.engraving && (
-                      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-90 px-4 py-2 rounded-lg shadow-lg">
-                        <p className="text-sm font-semibold text-gray-800">{perfumeData.engraving}</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center text-gray-400">
-                    <div className="text-6xl mb-4">🧴</div>
-                    <p className="text-lg">Select your bottle</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Perfume Info */}
-              {perfumeData.selectedPerfume && (
-                <div className="mt-6 text-center">
-                  <div className="bg-white rounded-2xl p-4 shadow-lg">
-                    <p className="text-sm text-gray-500">Selected Perfume</p>
-                    <p className="text-xl font-bold text-gray-900">{perfumeData.selectedPerfume}</p>
-                    <p className="text-sm text-gray-600">{perfumeData.perfumeCategory}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Side - Selection Area */}
-          <div>
-            {/* Step 0: Choose Bottle Size */}
-            {step === 0 && (
-              <div className="animate-fadeIn">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2">Choose Your Bottle Size</h2>
-                <p className="text-gray-600 mb-6 sm:mb-8">Select the perfect size for your custom fragrance</p>
-                <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                  {Object.entries(BOTTLE_IMAGES).map(([size, img]) => (
-                    <button
-                      key={size}
-                      onClick={() => setPerfumeData({ ...perfumeData, bottleSize: size })}
-                      className={`relative p-4 sm:p-6 rounded-2xl border-2 transition-all transform hover:scale-105 ${
-                        perfumeData.bottleSize === size
-                          ? "border-black bg-black text-white shadow-2xl scale-105"
-                          : "border-gray-200 bg-white hover:border-gray-400 hover:shadow-lg"
-                      }`}
-                    >
-                      {perfumeData.bottleSize === size && (
-                        <div className="absolute top-3 right-3 w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                          <Check className="text-black" size={16} />
-                        </div>
-                      )}
-                      <img src={img} alt={`${size}ML`} className="w-full h-24 sm:h-32 object-contain mb-3 sm:mb-4" />
-                      <div className="text-xl sm:text-2xl font-bold">{size}ML</div>
-                      <div className="text-xs sm:text-sm mt-1 opacity-75">
-                        US$ {size === '30' ? '138' : size === '50' ? '198' : size === '70' ? '258' : '318'}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Step 1: Choose Perfume */}
-            {step === 1 && (
-              <div>
-                <h2 className="text-3xl font-bold mb-8">Choose Your Eau de Parfum</h2>
-                <button
-                  onClick={() => setShowPerfumeModal(true)}
-                  className="w-full p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-black transition flex items-center justify-between"
-                >
-                  <div className="text-left flex items-center gap-4">
-                    {getSelectedPerfumeImage() && (
-                      <img src={getSelectedPerfumeImage()} alt="" className="w-16 h-16 rounded-xl object-cover" />
-                    )}
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Selected Perfume</div>
-                      <div className="text-xl font-semibold">
-                        {perfumeData.selectedPerfume || "Click to choose"}
-                      </div>
-                      {perfumeData.perfumeCategory && (
-                        <div className="text-sm text-gray-600 mt-1">{perfumeData.perfumeCategory}</div>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronRight size={24} />
-                </button>
-              </div>
-            )}
-
-            {/* Step 2: Choose Magnifier */}
-            {step === 2 && (
-              <div>
-                <h2 className="text-3xl font-bold mb-4">Add a Scent Magnifier</h2>
-                <p className="text-gray-600 mb-8">Strongly recommended by our experts</p>
-                <button
-                  onClick={() => setShowMagnifierModal(true)}
-                  className="w-full p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-black transition flex items-center justify-between"
-                >
-                  <div className="text-left flex items-center gap-4">
-                    {getSelectedMagnifierImage() && (
-                      <img src={getSelectedMagnifierImage()} alt="" className="w-16 h-16 rounded-xl object-cover" />
-                    )}
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Selected Magnifier</div>
-                      <div className="text-xl font-semibold">
-                        {perfumeData.magnifier || "Click to choose"}
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight size={24} />
-                </button>
-              </div>
-            )}
-
-            {/* Step 3: Design Bottle */}
-            {step === 3 && (
-              <div>
-                <h2 className="text-3xl font-bold mb-4">Design Your Bottle</h2>
-                <p className="text-gray-600 mb-8">Optional - Add personalized text</p>
-                <button
-                  onClick={() => setShowDesignModal(true)}
-                  className="w-full p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-black transition flex items-center justify-between"
-                >
-                  <div className="text-left">
-                    <div className="text-sm text-gray-500 mb-1">Bottle Engraving</div>
-                    <div className="text-xl font-semibold">
-                      {perfumeData.engraving || "Click to add text"}
-                    </div>
-                  </div>
-                  <ChevronRight size={24} />
-                </button>
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="flex gap-4 mt-8">
-              {step > 0 && (
-                <button
-                  onClick={() => setStep(step - 1)}
-                  className="flex-1 px-8 py-3 border-2 border-gray-300 rounded-lg hover:border-black transition"
-                >
-                  Back
-                </button>
-              )}
-              {step < 3 ? (
-                <button
-                  onClick={() => setStep(step + 1)}
-                  disabled={!isStepComplete()}
-                  className={`flex-1 px-8 py-3 rounded-lg transition ${
-                    isStepComplete()
-                      ? "bg-black text-white hover:bg-gray-800"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  Continue
-                </button>
-              ) : (
-                <button
-                  onClick={handleCreatePerfume}
-                  className="flex-1 px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 text-lg font-semibold"
-                >
-                  Create My Perfume
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-8  sm:py-12">
+        <Progress step={step} />
+        <BottleSection
+          setShowMagnifierModal={setShowMagnifierModal}
+          isStepComplete={isStepComplete}
+          handleCreatePerfume={handleCreatePerfume}
+          setShowDesignModal={setShowDesignModal}
+          setStep={setStep}
+          getSelectedMagnifierImage={getSelectedMagnifierImage}
+          getSelectedPerfumeImage={getSelectedPerfumeImage}
+          step={step}
+          perfumeData={perfumeData}
+          setPerfumeData={setPerfumeData} setShowPerfumeModal={function (): void {
+            throw new Error("Function not implemented.");
+          } }        />
       </div>
 
       {/* Perfume Selection Modal */}
@@ -449,8 +279,13 @@ const CreatePerfume = () => {
           <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold">Choose Your Eau de Parfum</h3>
-                <button onClick={() => setShowPerfumeModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <h3 className="text-2xl font-bold">
+                  Choose Your Eau de Parfum
+                </h3>
+                <button
+                  onClick={() => setShowPerfumeModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
                   <X size={24} />
                 </button>
               </div>
@@ -462,17 +297,23 @@ const CreatePerfume = () => {
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black outline-none"
               />
             </div>
-            
+
             <div className="overflow-y-auto p-6">
               {Object.entries(filteredPerfumes).map(([category, perfumes]) => (
                 <div key={category} className="mb-8">
-                  <h4 className="text-lg font-semibold mb-4 text-gray-700">{category}</h4>
+                  <h4 className="text-lg font-semibold mb-4 text-gray-700">
+                    {category}
+                  </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {perfumes.map((perfume) => (
                       <button
                         key={perfume.name}
                         onClick={() => {
-                          setPerfumeData({ ...perfumeData, selectedPerfume: perfume.name, perfumeCategory: category });
+                          setPerfumeData({
+                            ...perfumeData,
+                            selectedPerfume: perfume.name,
+                            perfumeCategory: category,
+                          });
                           setShowPerfumeModal(false);
                           setSearchTerm("");
                         }}
@@ -482,8 +323,14 @@ const CreatePerfume = () => {
                             : "border-gray-200 hover:border-gray-400"
                         }`}
                       >
-                        <img src={perfume.image} alt={perfume.name} className="w-full h-32 object-cover rounded-lg mb-2" />
-                        <div className="font-medium text-sm">{perfume.name}</div>
+                        <img
+                          src={perfume.image}
+                          alt={perfume.name}
+                          className="w-full h-32 object-cover rounded-lg mb-2"
+                        />
+                        <div className="font-medium text-sm">
+                          {perfume.name}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -500,11 +347,14 @@ const CreatePerfume = () => {
           <div className="bg-white rounded-3xl max-w-4xl w-full p-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold">Add a Scent Magnifier</h3>
-              <button onClick={() => setShowMagnifierModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+              <button
+                onClick={() => setShowMagnifierModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {MAGNIFIERS.map((mag) => (
                 <button
@@ -519,7 +369,11 @@ const CreatePerfume = () => {
                       : "border-gray-200 hover:border-gray-400"
                   }`}
                 >
-                  <img src={mag.image} alt={mag.name} className="w-full h-40 object-cover rounded-xl mb-4" />
+                  <img
+                    src={mag.image}
+                    alt={mag.name}
+                    className="w-full h-40 object-cover rounded-xl mb-4"
+                  />
                   <div className="font-semibold text-lg mb-1">{mag.name}</div>
                   <div className="text-sm opacity-75">{mag.category}</div>
                 </button>
@@ -535,27 +389,38 @@ const CreatePerfume = () => {
           <div className="bg-white rounded-3xl max-w-2xl w-full p-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold">Add Personalized Text</h3>
-              <button onClick={() => setShowDesignModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+              <button
+                onClick={() => setShowDesignModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Your Text (max 15 characters)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Text (max 15 characters)
+              </label>
               <input
                 type="text"
                 placeholder="My perfume"
                 maxLength={15}
                 value={perfumeData.engraving}
-                onChange={(e) => setPerfumeData({ ...perfumeData, engraving: e.target.value })}
+                onChange={(e) =>
+                  setPerfumeData({ ...perfumeData, engraving: e.target.value })
+                }
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black outline-none text-lg"
               />
-              <div className="text-sm text-gray-500 mt-2">{perfumeData.engraving.length}/15 characters</div>
+              <div className="text-sm text-gray-500 mt-2">
+                {perfumeData.engraving.length}/15 characters
+              </div>
             </div>
 
             <div className="flex gap-4">
               <button
-                onClick={() => setPerfumeData({ ...perfumeData, engraving: "" })}
+                onClick={() =>
+                  setPerfumeData({ ...perfumeData, engraving: "" })
+                }
                 className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl hover:border-black transition"
               >
                 Clear
@@ -578,25 +443,48 @@ const CreatePerfume = () => {
               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Check size={48} className="text-green-600" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Perfume is Ready!</h2>
-              <p className="text-gray-600">Your custom fragrance has been created successfully</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Your Perfume is Ready!
+              </h2>
+              <p className="text-gray-600">
+                Your custom fragrance has been created successfully
+              </p>
             </div>
 
             <div className="mb-8 bg-linear-to-br from-amber-50 to-rose-50 rounded-2xl p-6">
-              <img 
-                src={BOTTLE_IMAGES[perfumeData.bottleSize as keyof typeof BOTTLE_IMAGES]} 
+              <img
+                src={
+                  BOTTLE_IMAGES[
+                    perfumeData.bottleSize as keyof typeof BOTTLE_IMAGES
+                  ]
+                }
                 alt="Your Perfume"
                 className="w-48 h-auto mx-auto mb-4 object-contain"
               />
               <div className="bg-white rounded-xl p-4 shadow-md">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{perfumeData.selectedPerfume}</h3>
-                <p className="text-sm text-gray-600 mb-1">{perfumeData.perfumeCategory}</p>
-                <p className="text-sm text-gray-600">with {perfumeData.magnifier}</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {perfumeData.selectedPerfume}
+                </h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  {perfumeData.perfumeCategory}
+                </p>
+                <p className="text-sm text-gray-600">
+                  with {perfumeData.magnifier}
+                </p>
                 {perfumeData.engraving && (
-                  <p className="text-sm text-gray-800 mt-2 font-semibold italic">"{perfumeData.engraving}"</p>
+                  <p className="text-sm text-gray-800 mt-2 font-semibold italic">
+                    "{perfumeData.engraving}"
+                  </p>
                 )}
                 <p className="text-2xl font-bold text-gray-900 mt-4">
-                  US$ {perfumeData.bottleSize === '30' ? '138' : perfumeData.bottleSize === '50' ? '198' : perfumeData.bottleSize === '70' ? '258' : '318'}
+                  US${" "}
+                  {perfumeData.bottleSize === "30"
+                    ? "138"
+                    : perfumeData.bottleSize === "50"
+                      ? "198"
+                      : perfumeData.bottleSize === "70"
+                        ? "258"
+                        : "318"}
                 </p>
               </div>
             </div>

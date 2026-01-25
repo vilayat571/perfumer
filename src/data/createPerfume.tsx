@@ -70,7 +70,7 @@ export const MAGNIFIERS = [
 
 
 export const BOTTLE_IMAGES = {
-  "30": "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&q=80",
+  "30": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp",
   "50": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&q=80",
   "70": "https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=400&q=80",
   "100": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400&q=80"
