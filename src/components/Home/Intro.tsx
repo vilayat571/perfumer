@@ -275,7 +275,7 @@ const PerfumeHeroSlider: React.FC = () => {
           </div>
 
           {/* Background Decoration */}
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 to-purple-100/20 rounded-3xl -z-10 blur-3xl" />
+          <div className="absolute inset-0 bg-linear-to-br from-orange-100/20 to-purple-100/20 rounded-3xl -z-10 blur-3xl" />
         </div>
       </div>
     </div>
