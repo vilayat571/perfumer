@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, Leaf, Globe, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 interface Feature {
   id: number;
@@ -42,7 +42,7 @@ const WhyChooseUs: React.FC = () => {
     }
   ];
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -52,32 +52,32 @@ const WhyChooseUs: React.FC = () => {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.6,
-        ease: "easeOut"
+        ease: [0.25, 0.1, 0.25, 1]
       }
     }
   };
 
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, scale: 0.9 },
     visible: {
       opacity: 1,
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
+        ease: [0.25, 0.1, 0.25, 1]
       }
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 py-20 px-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 py-20 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <motion.div
