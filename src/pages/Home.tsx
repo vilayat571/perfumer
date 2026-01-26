@@ -5,7 +5,7 @@ import Layout from "../layout/Layout";
 const Home: React.FC = () => {
   return (
     <Layout>
-  <div>
+  <div className="">
     Coming soon
   </div>
     </Layout>
