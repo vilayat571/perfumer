@@ -1,7 +1,7 @@
 
 const Intro = () => {
   return (
-  <div className="relative px-8 py-16 overflow-hidden">
+  <div className="relative px-8 pb-16 overflow-hidden">
           <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-8">

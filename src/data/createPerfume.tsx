@@ -1,10 +1,10 @@
 export const PERFUME_CATEGORIES = {
-  "Floral & Delicate": [
+  "Çiçəkli və Zərif": [
     { name: "Rose", image: "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=400&q=80" },
     { name: "Orange Blossom", image: "https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400&q=80" },
     { name: "Tuberose", image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&q=80" },
     { name: "Jasmine", image: "https://images.unsplash.com/photo-1592729645009-b96d1e63d14b?w=400&q=80" },
-    { name: "Mimosa", image: "https://images.unsplash.com/photo-1616627547584-bf28cfeefa0f?w=400&q=80" },
+    { name: "Mimosa", image: "https://s.maison21g.com/media/images/orange-blossom-black-bg-032125/orange-blossom-black-bg-032125.jpg" },
     { name: "Frangipani", image: "https://images.unsplash.com/photo-1592320937521-84c88747a68e?w=400&q=80" },
     { name: "Muguet", image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&q=80" },
     { name: "Osmanthus", image: "https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400&q=80" },
@@ -63,7 +63,7 @@ export const PERFUME_CATEGORIES = {
 };
 
 export const MAGNIFIERS = [
-  { name: "Sage Supreme", category: "Fresh", image: "https://images.unsplash.com/photo-1544531585-9847b0d13037?w=400&q=80" },
+  { name: "Sage Supreme", category: "Fresh", image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=400&q=80" },
   { name: "Jazz Jasmine", category: "Elegant", image: "https://images.unsplash.com/photo-1592729645009-b96d1e63d14b?w=400&q=80" },
   { name: "Oud Outshine", category: "Sensual", image: "https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=400&q=80" }
 ];
@@ -71,7 +71,7 @@ export const MAGNIFIERS = [
 
 export const BOTTLE_IMAGES = {
   "30": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp",
-  "50": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&q=80",
-  "70": "https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=400&q=80",
-  "100": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400&q=80"
+  "50": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp",
+  "70": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp",
+  "100": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp"
 };

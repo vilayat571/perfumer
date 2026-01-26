@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Check, Download } from "lucide-react";
+import { X, ChevronRight, Check, Download } from "lucide-react";
 import {
   BOTTLE_IMAGES,
   MAGNIFIERS,
@@ -7,7 +7,6 @@ import {
 } from "../data/createPerfume";
 import Header from "../components/CreatePerfume/Header";
 import Progress from "../components/CreatePerfume/Progress";
-import BottleSection from "../components/CreatePerfume/BottleSection";
 
 export interface PerfumeData {
   bottleSize: string;
@@ -258,30 +257,245 @@ const CreatePerfume = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-8  sm:py-12">
         <Progress step={step} />
-        <BottleSection
-          setShowMagnifierModal={setShowMagnifierModal}
-          isStepComplete={isStepComplete}
-          handleCreatePerfume={handleCreatePerfume}
-          setShowDesignModal={setShowDesignModal}
-          setStep={setStep}
-          getSelectedMagnifierImage={getSelectedMagnifierImage}
-          getSelectedPerfumeImage={getSelectedPerfumeImage}
-          step={step}
-          perfumeData={perfumeData}
-          setPerfumeData={setPerfumeData} setShowPerfumeModal={function (): void {
-            throw new Error("Function not implemented.");
-          } }        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Left Side - Bottle Preview */}
+          <div className="flex items-center justify-center">
+            <div className="relative">
+              <div className="w-80 h-96 bg-white rounded-3xl flex items-center justify-center shadow-2xl">
+                {perfumeData.bottleSize ? (
+                  <div className="relative cursor-pointer">
+                    <img
+                      src={
+                        BOTTLE_IMAGES[
+                          perfumeData.bottleSize as keyof typeof BOTTLE_IMAGES
+                        ]
+                      }
+                      alt="Bottle"
+                      className="w-80 h-auto object-contain"
+                    />
+                    {perfumeData.engraving && (
+                      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-90 px-4 py-2 rounded-lg shadow-lg">
+                        <p className="text-sm font-semibold text-gray-800">
+                          {perfumeData.engraving}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-400">
+                    <p className="text-lg">Qab seç</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Perfume Info */}
+              {perfumeData.selectedPerfume && (
+                <div className="mt-6 text-center">
+                  <div className="bg-white rounded-2xl p-4 shadow-lg">
+                    <p className="text-sm text-gray-500">Selected Perfume</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {perfumeData.selectedPerfume}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {perfumeData.perfumeCategory}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Side - Selection Area */}
+          <div>
+            {/* Step 0: Choose Bottle Size */}
+            {step === 0 && (
+              <div className="animate-fadeIn">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                  Qab ölçüsü
+                </h2>
+                <p className="text-gray-600 mb-6 sm:mb-8">
+                  Ətrin üçün istədiyin ölçünü seç.
+                </p>
+                <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                  {Object.entries(BOTTLE_IMAGES).map(([size, img]) => (
+                    <button
+                      key={size}
+                      onClick={() =>
+                        setPerfumeData({ ...perfumeData, bottleSize: size })
+                      }
+                      className={`relative cursor-pointer p-4 sm:p-6 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                        perfumeData.bottleSize === size
+                          ? " bg-white text-black shadow-2xl scale-105"
+                          : "border-gray-200 bg-white hover:border-gray-400 hover:shadow-lg"
+                      }`}
+                    >
+                      {perfumeData.bottleSize === size && (
+                        <div className="absolute top-3 right-3 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                          <Check className="text-black" size={16} />
+                        </div>
+                      )}
+                      <img
+                        src={img}
+                        alt={`${size}ML`}
+                        className="w-full h-24 sm:h-32 object-contain mb-3 sm:mb-4"
+                      />
+                      <div className="text-xl sm:text-2xl font-bold">
+                        {size}ML
+                      </div>
+                      <div className="text-xs sm:text-sm mt-1 opacity-75">
+                        {size === "30"
+                          ? "22"
+                          : size === "50"
+                            ? "32"
+                            : size === "70"
+                              ? "37"
+                              : "40"}{" "}
+                        AZN
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 1: Choose Perfume */}
+            {step === 1 && (
+              <div>
+                <h2 className="text-3xl font-bold mb-8">
+                  Qoxu növü:
+                </h2>
+                <button
+                  onClick={() => setShowPerfumeModal(true)}
+                  className="w-full p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-black transition flex items-center justify-between"
+                >
+                  <div className="text-left flex items-center gap-4">
+                    {getSelectedPerfumeImage() && (
+                      <img
+                        src={getSelectedPerfumeImage()}
+                        alt=""
+                        className="w-16 h-16 rounded-xl object-cover"
+                      />
+                    )}
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">
+                       Qoxular:
+                      </div>
+                      <div className="text-xl font-semibold cursor-pointer">
+                        {perfumeData.selectedPerfume || "Seçmək üçün kliklə"}
+                      </div>
+                      {perfumeData.perfumeCategory && (
+                        <div className="text-sm text-gray-600 mt-1">
+                          {perfumeData.perfumeCategory}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Choose Magnifier */}
+            {step === 2 && (
+              <div>
+                <h2 className="text-3xl font-bold mb-4">
+                  Gücləndirici əlavə et
+                </h2>
+                <p className="text-gray-600 mb-8">
+                 Mütəxəsislər tərəfindən tövsiyyə edilənlər
+                </p>
+                <button
+                  onClick={() => setShowMagnifierModal(true)}
+                  className="w-full p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-black transition flex items-center justify-between"
+                >
+                  <div className="text-left flex items-center gap-4">
+                    {getSelectedMagnifierImage() && (
+                      <img
+                        src={getSelectedMagnifierImage()}
+                        alt=""
+                        className="w-16 h-16 rounded-xl object-cover"
+                      />
+                    )}
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">
+                        Selected Magnifier
+                      </div>
+                      <div className="text-xl font-semibold">
+                        {perfumeData.magnifier || "Click to choose"}
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+            )}
+
+            {/* Step 3: Design Bottle */}
+            {step === 3 && (
+              <div>
+                <h2 className="text-3xl font-bold mb-4">Design Your Bottle</h2>
+                <p className="text-gray-600 mb-8">
+                  Optional - Add personalized text
+                </p>
+                <button
+                  onClick={() => setShowDesignModal(true)}
+                  className="w-full p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-black transition flex items-center justify-between"
+                >
+                  <div className="text-left">
+                    <div className="text-sm text-gray-500 mb-1">
+                      Bottle Engraving
+                    </div>
+                    <div className="text-xl font-semibold">
+                      {perfumeData.engraving || "Click to add text"}
+                    </div>
+                  </div>
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-4 mt-8">
+              {step > 0 && (
+                <button
+                  onClick={() => setStep(step - 1)}
+                  className="flex-1 px-5 cursor-pointer py-3 border-2 border-gray-300 rounded-lg hover:border-black transition"
+                >
+                  Geri
+                </button>
+              )}
+              {step < 3 ? (
+                <button
+                  onClick={() => setStep(step + 1)}
+                  disabled={!isStepComplete()}
+                  className={`flex-1 px-6 py-4 cursor-pointer rounded-lg transition ${
+                    isStepComplete()
+                      ? "bg-black text-white hover:bg-gray-800"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                 Növbəti
+                </button>
+              ) : (
+                <button
+                  onClick={handleCreatePerfume}
+                  className="flex-1 px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 text-lg font-semibold"
+                >
+                  Qoxumu hazırla
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Perfume Selection Modal */}
       {showPerfumeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold">
-                  Choose Your Eau de Parfum
-                </h3>
+                <h3 className="text-2xl font-bold">İstədiyini qoxunu seç!</h3>
                 <button
                   onClick={() => setShowPerfumeModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-full"
@@ -291,7 +505,7 @@ const CreatePerfume = () => {
               </div>
               <input
                 type="text"
-                placeholder="Search perfumes..."
+                placeholder="Qoxunu axtar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black outline-none"
@@ -317,9 +531,9 @@ const CreatePerfume = () => {
                           setShowPerfumeModal(false);
                           setSearchTerm("");
                         }}
-                        className={`p-3 rounded-xl border-2 transition ${
+                        className={`p-3 cursor-pointer rounded-xl border-2 transition ${
                           perfumeData.selectedPerfume === perfume.name
-                            ? "border-black bg-black text-white"
+                            ? "border-black bg-white text-black"
                             : "border-gray-200 hover:border-gray-400"
                         }`}
                       >

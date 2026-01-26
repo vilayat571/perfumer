@@ -3,7 +3,7 @@ import { Check } from 'lucide-react'
 const Progress = ({step}:{step:number}) => {
   return (
      <div className="flex items-center justify-center mb-8 sm:mb-12 mt-5 overflow-x-auto">
-          {["Qab", "Qoxu", "Magnifier", "Dizayn"].map((label, idx) => (
+          {["Qab", "Qoxu", "Gücləndirici", "Dizayn"].map((label, idx) => (
             <div key={idx} className="flex items-center">
               <div
                 className={`flex flex-col items-center ${idx < 3 ? "mr-2 sm:mr-0" : ""}`}
