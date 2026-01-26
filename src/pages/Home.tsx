@@ -1,9 +1,9 @@
 import React from "react";
 import Layout from "../layout/Layout";
 import StatsSection from "../components/Home/StatsSection";
-import Products from "../components/Home/Products";
 import WhyChooseUs from "../components/Home/WhyChooseUs";
 import Intro from "../components/Home/Intro";
+import Products from "../components/Home/Products";
 
 const Home: React.FC = () => {
   return (
