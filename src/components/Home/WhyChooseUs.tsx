@@ -207,7 +207,7 @@ const WhyChooseUs: React.FC = () => {
             }}
             whileTap={{ scale: 0.98 }}
           >
-            Discover Our Collection
+            Qoxularımızı kəşf et
           </motion.button>
         </motion.div>
 

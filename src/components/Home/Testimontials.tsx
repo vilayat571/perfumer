@@ -89,7 +89,7 @@ const PartnersTestimonials: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Partners Section */}
         <motion.div 
-          className="mb-24"
+          className="mb-40 mt-20"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
