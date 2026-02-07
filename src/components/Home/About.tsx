@@ -6,28 +6,24 @@ const AboutSection = () => {
       icon: Heart,
       title: "Müştəri Məmnuniyyəti",
       description: "Hər bir müştərimiz bizim üçün xüsusidir və onların xoşbəxtliyi prioritetimizdir",
-      color: "from-rose-100 to-pink-100",
       iconColor: "text-rose-500",
     },
     {
       icon: Award,
       title: "Yüksək Keyfiyyət",
       description: "Premium və təbii maddələrdən istifadə edərək ən yüksək standartları təmin edirik",
-      color: "from-amber-100 to-yellow-100",
       iconColor: "text-amber-500",
     },
     {
       icon: Zap,
       title: "İnnovasiya",
       description: "Ən son texnologiya və kreativ yanaşma ilə unikal təcrübə yaradırıq",
-      color: "from-blue-100 to-cyan-100",
       iconColor: "text-blue-500",
     },
     {
       icon: Users,
       title: "Komanda İşi",
       description: "Peşəkar komandamız sizə ən yaxşı xidməti göstərmək üçün çalışır",
-      color: "from-green-100 to-emerald-100",
       iconColor: "text-green-500",
     },
   ];
@@ -43,8 +39,8 @@ const AboutSection = () => {
     <section className="py-20 bg-white relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-orange-100/30 to-transparent rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-rose-100/30 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-linear-to-br from-orange-100/30 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-linear-to-tr from-rose-100/30 to-transparent rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,8 +51,8 @@ const AboutSection = () => {
             Haqqımızda
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            ZANA{" "}
-            <span className="bg-gradient-to-r from-orange-500 to-rose-500 bg-clip-text text-transparent">
+            Perfumer
+            <span className="bg-linear-to-r from-orange-500 to-rose-500 bg-clip-text text-transparent">
               hekayəsi
             </span>
           </h2>
@@ -73,11 +69,11 @@ const AboutSection = () => {
             className="relative rounded-3xl overflow-hidden shadow-2xl"
             style={{ animation: "fadeInLeft 1s ease-out" }}
           >
-            <div className="aspect-[4/3] bg-gradient-to-br from-orange-100 via-amber-50 to-rose-100 flex items-center justify-center p-12">
+            <div className="aspect-[4/3] bg-linear-to-br from-amber-50 to-orange-50 flex items-center justify-center p-12">
               <div className="text-center space-y-6">
                 <div className="text-8xl mb-4">🌸</div>
                 <div className="space-y-2">
-                  <div className="text-6xl font-bold bg-gradient-to-r from-orange-500 to-rose-500 bg-clip-text text-transparent">
+                  <div className="text-6xl font-bold bg-linear-to-br from-amber-50 to-orange-50 bg-clip-text text-transparent">
                     10K+
                   </div>
                   <div className="text-xl text-gray-700 font-semibold">
@@ -87,7 +83,7 @@ const AboutSection = () => {
               </div>
             </div>
             {/* Glow Effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/10 via-transparent to-rose-500/10 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-linear-to-tr from-orange-500/10 via-transparent to-rose-500/10 pointer-events-none"></div>
           </div>
 
           {/* Right - Content */}
@@ -116,7 +112,7 @@ const AboutSection = () => {
             </div>
 
             {/* Mission Badge */}
-            <div className="bg-gradient-to-r from-orange-50 to-rose-50 p-6 rounded-2xl border-l-4 border-orange-500">
+            <div className="bg-linear-to-r from-orange-50 to-rose-50 p-6 rounded-2xl border-l-4 border-orange-500">
               <div className="flex items-start gap-3">
                 <Target className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
                 <div>
@@ -147,7 +143,7 @@ const AboutSection = () => {
                     animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
                   }}
                 >
-                  <div className={`bg-gradient-to-br ${value.color} rounded-2xl p-6 h-full transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer`}>
+                  <div className={`bg-linear-to-br from-amber-50 to-orange-50 rounded-2xl p-6 h-full transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer`}>
                     {/* Icon */}
                     <div className="mb-4">
                       <div className="inline-flex p-3 rounded-xl bg-white shadow-md">
@@ -164,7 +160,8 @@ const AboutSection = () => {
                     </p>
 
                     {/* Hover Effect */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/0 to-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-linear-to-r from-white/0 to-white/50 opacity-0 group-hover:opacity-100 
+                    transition-opacity duration-300 pointer-events-none"></div>
                   </div>
                 </div>
               );
@@ -179,14 +176,14 @@ const AboutSection = () => {
           </h3>
           <div className="relative">
             {/* Timeline Line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-orange-500 to-rose-500 hidden md:block"></div>
+            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-linear-to-br from-amber-50 to-orange-50 hidden md:block"></div>
 
             {/* Timeline Items */}
             <div className="space-y-12">
               {milestones.map((milestone, index) => (
                 <div
                   key={index}
-                  className={`flex flex-col md:flex-row items-center gap-8 ${
+                  className={`flex flex-col md:flex-row  items-center gap-8 ${
                     index % 2 === 0 ? "md:flex-row-reverse" : ""
                   }`}
                   style={{
@@ -194,13 +191,13 @@ const AboutSection = () => {
                   }}
                 >
                   {/* Content */}
-                  <div className="flex-1 text-center md:text-left">
+                  <div className="flex-1 bg-linear-to-br from-amber-50 to-orange-50  text-center md:text-left">
                     <div
                       className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 ${
                         index % 2 === 0 ? "md:text-right" : ""
                       }`}
                     >
-                      <div className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-rose-500 bg-clip-text text-transparent mb-2">
+                      <div className="text-3xl font-bold text-black  mb-2">
                         {milestone.year}
                       </div>
                       <div className="text-gray-700 font-semibold">
@@ -211,8 +208,8 @@ const AboutSection = () => {
 
                   {/* Timeline Dot */}
                   <div className="hidden md:block flex-shrink-0">
-                    <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-rose-500 rounded-full shadow-lg relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-rose-500 rounded-full animate-ping opacity-75"></div>
+                    <div className="w-6 h-6 bg-linear-to-r from-orange-500 to-rose-500 rounded-full shadow-lg relative">
+                      <div className="absolute inset-0 bg-linear-to-r from-orange-500 to-rose-500 rounded-full animate-ping opacity-75"></div>
                     </div>
                   </div>
 
@@ -225,23 +222,23 @@ const AboutSection = () => {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-orange-500 to-rose-500 rounded-3xl p-12 relative overflow-hidden">
+        <div className="text-center bg-[#f2f4f7] rounded-3xl p-12 relative overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+            <div className="absolute top-0 left-0 w-64 h-64 bg-[#fafbfc] rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#fafbfc] rounded-full blur-3xl"></div>
           </div>
 
           <div className="relative z-10">
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h3 className="text-3xl md:text-4xl font-bold text-black mb-4">
               Öz ətir hekayənizi yaradın
             </h3>
-            <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
+            <p className="text-black text-lg mb-8 max-w-2xl mx-auto">
               Bizimlə birlikdə unikal, şəxsi və unudulmaz ətir təcrübəsi yaşayın
             </p>
             <a
               href="/create-perfume"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-orange-600 font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-orange-600 text-white font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
             >
               <span>İndi Başlayın</span>
               <Sparkles className="w-5 h-5" />

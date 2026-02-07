@@ -37,13 +37,13 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo with Animation */}
-          <div className="flex-shrink-0 group">
+          <div className="shrink-0 group">
             <a
               href="/"
               className="flex items-center gap-2 text-3xl font-bold text-gray-900 transition-all duration-300 hover:scale-105"
             >
               <span className="relative">
-                zana
+                perfumer
                 <span className="absolute -top-1 -right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <Sparkles className="w-4 h-4 text-orange-500" />
                 </span>
