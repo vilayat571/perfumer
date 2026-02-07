@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { ShoppingCart, Bell, Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, Droplets } from "lucide-react";
 
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [cartCount] = useState(0);
-  const [hasNotifications] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,9 +16,9 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`sticky bg-wh top-0 z-50 transition-all duration-500 ${
+      className={`sticky top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-white backdrop-blur-md shadow-lg"
+          ? "bg-white/95 backdrop-blur-md shadow-lg"
           : "bg-white"
       }`}
     >
@@ -63,31 +61,17 @@ const Navbar: React.FC = () => {
             ))}
           </div>
 
-          {/* Right Side Icons */}
+          {/* Right Side - Create Perfume Button */}
           <div className="flex items-center space-x-2">
-            {/* Cart Icon with Badge */}
-            <button
-              className="relative p-3 text-gray-700 hover:text-gray-900 transition-all duration-300 hover:scale-110 hover:bg-gradient-to-r hover:from-amber-50 hover:to-rose-50 rounded-xl group"
-              aria-label="Shopping cart"
+            {/* Create Perfume CTA Button */}
+            <a
+              href="/create-perfume"
+              className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105 group relative overflow-hidden"
             >
-              <ShoppingCart className="w-6 h-6 transition-transform duration-300 group-hover:rotate-12" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold animate-bounce">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notification Icon with Indicator */}
-            <button
-              className="relative p-3 text-gray-700 hover:text-gray-900 transition-all duration-300 hover:scale-110 hover:bg-gradient-to-r hover:from-amber-50 hover:to-rose-50 rounded-xl group"
-              aria-label="Notifications"
-            >
-              <Bell className="w-6 h-6 transition-transform duration-300 group-hover:rotate-12" />
-              {hasNotifications && (
-                <span className="absolute top-2 right-2 bg-rose-500 w-2 h-2 rounded-full animate-pulse"></span>
-              )}
-            </button>
+              <span className="absolute inset-0 bg-gradient-to-r from-rose-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <Droplets className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:rotate-12" />
+              <span className="relative z-10">Create Perfume</span>
+            </a>
 
             {/* Mobile menu button */}
             <button
@@ -107,7 +91,7 @@ const Navbar: React.FC = () => {
         {/* Mobile Menu with Animation */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
-            isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            isMobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
           }`}
         >
           <div className="py-4 border-t border-gray-200 space-y-2">
@@ -131,6 +115,21 @@ const Navbar: React.FC = () => {
                 {item.name}
               </a>
             ))}
+            
+            {/* Mobile Create Perfume Button */}
+            <a
+              href="/create-perfume"
+              className="flex items-center justify-center gap-2 mx-4 mt-4 px-5 py-3 bg-gradient-to-r from-amber-500 to-rose-500 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg"
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{
+                animation: isMobileMenuOpen
+                  ? `slideInLeft 0.3s ease-out 0.4s both`
+                  : "none",
+              }}
+            >
+              <Droplets className="w-5 h-5" />
+              <span>Create Perfume</span>
+            </a>
           </div>
         </div>
       </div>
