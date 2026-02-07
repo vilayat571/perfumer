@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, ChevronRight, Check, Download } from "lucide-react";
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState } from "react";
+import { X, ChevronRight, Check, Download, MessageCircle } from "lucide-react";
 import {
   BOTTLE_IMAGES,
   MAGNIFIERS,
@@ -29,188 +29,321 @@ const CreatePerfume = () => {
   const [showMagnifierModal, setShowMagnifierModal] = useState(false);
   const [showDesignModal, setShowDesignModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // WhatsApp number (replace with your actual number)
+  const WHATSAPP_NUMBER = "+60176487917"; // Format: country code + number (no + or spaces)
 
   const handleCreatePerfume = () => {
     setShowSuccessModal(true);
   };
 
+  const sendToWhatsApp = () => {
+    const price = perfumeData.bottleSize === "30" ? "22" : 
+                  perfumeData.bottleSize === "50" ? "32" : 
+                  perfumeData.bottleSize === "70" ? "37" : "40";
+
+    const message = `
+🌸 *ZANA - Yeni Sifariş* 🌸
+
+📦 *Sifariş Detalları:*
+━━━━━━━━━━━━━━━━
+
+🔸 Qoxu: ${perfumeData.selectedPerfume}
+🔸 Kateqoriya: ${perfumeData.perfumeCategory}
+🔸 Qab Ölçüsü: ${perfumeData.bottleSize}ML
+🔸 Gücləndirici: ${perfumeData.magnifier}
+${perfumeData.engraving ? `🔸 Həkk: "${perfumeData.engraving}"` : ""}
+
+━━━━━━━━━━━━━━━━
+💰 *Ümumi Qiymət:* ${price} AZN
+
+📅 Tarix: ${new Date().toLocaleDateString("az-AZ", { 
+      year: "numeric", 
+      month: "long", 
+      day: "numeric" 
+    })}
+
+Sifarişimi təsdiq etmək istəyirəm! ✨
+    `.trim();
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, "_blank");
+  };
+
   const generatePDF = () => {
-    // Create a more professional PDF content with HTML
     const pdfContent = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 40px;
-      background: linear-gradient(135deg, #FFF8DC 0%, #FFE4E1 100%);
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+    
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 100%);
+      padding: 60px 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
     .container {
       background: white;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
     }
+    
     .header {
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      padding: 40px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logo {
+      font-size: 48px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+    
+    .content {
+      padding: 60px 40px 40px;
+    }
+    
+    .bottle-image {
       text-align: center;
       margin-bottom: 40px;
-      border-bottom: 3px solid #000;
-      padding-bottom: 20px;
     }
-    .header h1 {
-      font-size: 36px;
-      margin: 0;
-      color: #000;
+    
+    .bottle-image img {
+      max-width: 250px;
+      height: auto;
+      filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.15));
+    }
+    
+    .perfume-name {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .perfume-name h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 8px;
+    }
+    
+    .perfume-name p {
+      font-size: 16px;
+      color: #666;
+      font-weight: 500;
+    }
+    
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .detail-card {
+      background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 100%);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+    
+    .detail-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .detail-value {
+      font-size: 18px;
+      color: #111;
+      font-weight: 700;
+    }
+    
+    .engraving-section {
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .engraving-text {
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
+    
+    .price-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .price-label {
+      font-size: 14px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    
+    .price {
+      font-size: 48px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 30px 40px;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+    }
+    
+    .footer-date {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 15px;
+    }
+    
+    .footer-message {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .footer-brand {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
       letter-spacing: 2px;
     }
-    .header p {
-      color: #666;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    .product-image {
-      text-align: center;
-      margin: 30px 0;
-    }
-    .product-image img {
-      max-width: 300px;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    .details {
-      margin: 30px 0;
-    }
-    .detail-row {
-      display: flex;
-      padding: 15px;
-      border-bottom: 1px solid #eee;
-      align-items: center;
-    }
-    .detail-label {
-      font-weight: bold;
-      width: 200px;
-      color: #333;
-      font-size: 16px;
-    }
-    .detail-value {
-      flex: 1;
-      color: #666;
-      font-size: 16px;
-    }
-    .engraving {
-      text-align: center;
-      margin: 30px 0;
-      padding: 20px;
-      background: #f8f8f8;
-      border-radius: 10px;
-    }
-    .engraving p {
-      font-size: 24px;
-      font-weight: bold;
-      color: #000;
-      font-style: italic;
-    }
-    .footer {
-      margin-top: 40px;
-      text-align: center;
-      padding-top: 20px;
-      border-top: 2px solid #000;
-    }
-    .footer p {
-      color: #666;
-      font-size: 12px;
-    }
-    .price {
-      text-align: center;
-      margin: 30px 0;
-      font-size: 32px;
-      font-weight: bold;
-      color: #000;
+    
+    .divider {
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      margin: 20px auto;
+      border-radius: 3px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>LA CRÉATION</h1>
-      <p>Your Custom Perfume Order</p>
+      <div class="logo">ZANA</div>
+      <div class="subtitle">Custom Fragrance</div>
     </div>
     
-    <div class="product-image">
-      <img src="${BOTTLE_IMAGES[perfumeData.bottleSize as keyof typeof BOTTLE_IMAGES]}" alt="Your Custom Perfume" />
-    </div>
-    
-    <div class="details">
-      <div class="detail-row">
-        <div class="detail-label">Bottle Size:</div>
-        <div class="detail-value">${perfumeData.bottleSize}ML</div>
+    <div class="content">
+      <div class="bottle-image">
+        <img src="${BOTTLE_IMAGES[perfumeData.bottleSize as keyof typeof BOTTLE_IMAGES]}" alt="Your Perfume" />
       </div>
-      <div class="detail-row">
-        <div class="detail-label">Perfume:</div>
-        <div class="detail-value">${perfumeData.selectedPerfume}</div>
+      
+      <div class="perfume-name">
+        <h2>${perfumeData.selectedPerfume}</h2>
+        <p>${perfumeData.perfumeCategory}</p>
       </div>
-      <div class="detail-row">
-        <div class="detail-label">Category:</div>
-        <div class="detail-value">${perfumeData.perfumeCategory}</div>
+      
+      <div class="divider"></div>
+      
+      <div class="details-grid">
+        <div class="detail-card">
+          <div class="detail-label">Bottle Size</div>
+          <div class="detail-value">${perfumeData.bottleSize}ML</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Magnifier</div>
+          <div class="detail-value">${perfumeData.magnifier}</div>
+        </div>
       </div>
-      <div class="detail-row">
-        <div class="detail-label">Scent Magnifier:</div>
-        <div class="detail-value">${perfumeData.magnifier}</div>
-      </div>
+      
       ${
         perfumeData.engraving
           ? `
-      <div class="detail-row">
-        <div class="detail-label">Personalization:</div>
-        <div class="detail-value">${perfumeData.engraving}</div>
+      <div class="engraving-section">
+        <div class="engraving-text">"${perfumeData.engraving}"</div>
       </div>
       `
           : ""
       }
+      
+      <div class="price-section">
+        <div class="price-label">Total Price</div>
+        <div class="price">${perfumeData.bottleSize === "30" ? "22" : perfumeData.bottleSize === "50" ? "32" : perfumeData.bottleSize === "70" ? "37" : "40"} AZN</div>
+      </div>
     </div>
-    
-    ${
-      perfumeData.engraving
-        ? `
-    <div class="engraving">
-      <p>"${perfumeData.engraving}"</p>
-    </div>
-    `
-        : ""
-    }
-    
-    <div class="price">US$ ${perfumeData.bottleSize === "30" ? "138" : perfumeData.bottleSize === "50" ? "198" : perfumeData.bottleSize === "70" ? "258" : "318"}</div>
     
     <div class="footer">
-      <p>Order Date: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
-      <p>Thank you for creating your unique fragrance with us!</p>
-      <p style="margin-top: 20px; font-weight: bold;">LA CRÉATION PARIS</p>
+      <div class="footer-date">${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
+      <div class="footer-message">
+        Thank you for creating your unique fragrance with us.<br>
+        Your custom scent has been carefully crafted just for you.
+      </div>
+      <div class="divider"></div>
+      <div class="footer-brand">ZANA</div>
     </div>
   </div>
 </body>
 </html>
-    `;
+  `;
 
     const blob = new Blob([pdfContent], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `LA-CREATION-${perfumeData.selectedPerfume}-${Date.now()}.html`;
+    a.download = `ZANA-${perfumeData.selectedPerfume}-${Date.now()}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    // Close the success modal after download
-    setTimeout(() => {
-      setShowSuccessModal(false);
-    }, 1000);
   };
 
   const isStepComplete = () => {
@@ -220,21 +353,19 @@ const CreatePerfume = () => {
     return true;
   };
 
-  const filteredPerfumes = Object.entries(PERFUME_CATEGORIES).reduce(
-    (acc, [category, perfumes]) => {
-      const filtered = perfumes.filter((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-      if (filtered.length > 0) {
-        acc[category] = filtered;
-      }
-      return acc;
-    },
-    {} as Record<
-      string,
-      (typeof PERFUME_CATEGORIES)[keyof typeof PERFUME_CATEGORIES]
-    >,
-  );
+ const filteredPerfumes = Object.entries(PERFUME_CATEGORIES).reduce<Record<string, (typeof PERFUME_CATEGORIES)[keyof typeof PERFUME_CATEGORIES]>
+>(
+  (acc, [category, perfumes]) => {
+    const filtered = perfumes.filter((p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+    if (filtered.length > 0) {
+      acc[category] = filtered;
+    }
+    return acc;
+  },
+  {},
+);
 
   const getSelectedPerfumeImage = () => {
     for (const category of Object.values(PERFUME_CATEGORIES)) {
@@ -255,7 +386,7 @@ const CreatePerfume = () => {
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-white to-rose-50">
       <Header />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-8  sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 sm:py-12">
         <Progress step={step} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left Side - Bottle Preview */}
@@ -292,7 +423,7 @@ const CreatePerfume = () => {
               {perfumeData.selectedPerfume && (
                 <div className="mt-6 text-center">
                   <div className="bg-white rounded-2xl p-4 shadow-lg">
-                    <p className="text-sm text-gray-500">Selected Perfume</p>
+                    <p className="text-sm text-gray-500">Seçilmiş Qoxu</p>
                     <p className="text-xl font-bold text-gray-900">
                       {perfumeData.selectedPerfume}
                     </p>
@@ -361,9 +492,7 @@ const CreatePerfume = () => {
             {/* Step 1: Choose Perfume */}
             {step === 1 && (
               <div>
-                <h2 className="text-3xl font-bold mb-8">
-                  Qoxu növü:
-                </h2>
+                <h2 className="text-3xl font-bold mb-8">Qoxu növü:</h2>
                 <button
                   onClick={() => setShowPerfumeModal(true)}
                   className="w-full p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-black transition flex items-center justify-between"
@@ -377,9 +506,7 @@ const CreatePerfume = () => {
                       />
                     )}
                     <div>
-                      <div className="text-sm text-gray-500 mb-1">
-                       Qoxular:
-                      </div>
+                      <div className="text-sm text-gray-500 mb-1">Qoxular:</div>
                       <div className="text-xl font-semibold cursor-pointer">
                         {perfumeData.selectedPerfume || "Seçmək üçün kliklə"}
                       </div>
@@ -402,7 +529,7 @@ const CreatePerfume = () => {
                   Gücləndirici əlavə et
                 </h2>
                 <p className="text-gray-600 mb-8">
-                 Mütəxəsislər tərəfindən tövsiyyə edilənlər
+                  Mütəxəsislər tərəfindən tövsiyyə edilənlər
                 </p>
                 <button
                   onClick={() => setShowMagnifierModal(true)}
@@ -418,10 +545,10 @@ const CreatePerfume = () => {
                     )}
                     <div>
                       <div className="text-sm text-gray-500 mb-1">
-                        Selected Magnifier
+                        Seçilmiş Gücləndirici
                       </div>
                       <div className="text-xl font-semibold">
-                        {perfumeData.magnifier || "Click to choose"}
+                        {perfumeData.magnifier || "Seçmək üçün kliklə"}
                       </div>
                     </div>
                   </div>
@@ -433,9 +560,9 @@ const CreatePerfume = () => {
             {/* Step 3: Design Bottle */}
             {step === 3 && (
               <div>
-                <h2 className="text-3xl font-bold mb-4">Design Your Bottle</h2>
+                <h2 className="text-3xl font-bold mb-4">Qabını Dizayn Et</h2>
                 <p className="text-gray-600 mb-8">
-                  Optional - Add personalized text
+                  İstəyə bağlı - Şəxsi mətn əlavə et
                 </p>
                 <button
                   onClick={() => setShowDesignModal(true)}
@@ -443,10 +570,10 @@ const CreatePerfume = () => {
                 >
                   <div className="text-left">
                     <div className="text-sm text-gray-500 mb-1">
-                      Bottle Engraving
+                      Həkk olunan mətn
                     </div>
                     <div className="text-xl font-semibold">
-                      {perfumeData.engraving || "Click to add text"}
+                      {perfumeData.engraving || "Mətn əlavə et"}
                     </div>
                   </div>
                   <ChevronRight size={24} />
@@ -474,7 +601,7 @@ const CreatePerfume = () => {
                       : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
-                 Növbəti
+                  Növbəti
                 </button>
               ) : (
                 <button
@@ -519,7 +646,7 @@ const CreatePerfume = () => {
                     {category}
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {perfumes.map((perfume) => (
+                    {perfumes.map((perfume: { name: boolean | Key | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; image: string | undefined; }) => (
                       <button
                         key={perfume.name}
                         onClick={() => {
@@ -560,7 +687,7 @@ const CreatePerfume = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl max-w-4xl w-full p-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">Add a Scent Magnifier</h3>
+              <h3 className="text-2xl font-bold">Gücləndirici əlavə et</h3>
               <button
                 onClick={() => setShowMagnifierModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-full"
@@ -602,7 +729,7 @@ const CreatePerfume = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">Add Personalized Text</h3>
+              <h3 className="text-2xl font-bold">Şəxsi Mətn Əlavə Et</h3>
               <button
                 onClick={() => setShowDesignModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-full"
@@ -613,11 +740,11 @@ const CreatePerfume = () => {
 
             <div className="mb-8">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Text (max 15 characters)
+                Mətniniz (maksimum 15 simvol)
               </label>
               <input
                 type="text"
-                placeholder="My perfume"
+                placeholder="Mənim ətrim"
                 maxLength={15}
                 value={perfumeData.engraving}
                 onChange={(e) =>
@@ -626,7 +753,7 @@ const CreatePerfume = () => {
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-black outline-none text-lg"
               />
               <div className="text-sm text-gray-500 mt-2">
-                {perfumeData.engraving.length}/15 characters
+                {perfumeData.engraving.length}/15 simvol
               </div>
             </div>
 
@@ -637,18 +764,19 @@ const CreatePerfume = () => {
                 }
                 className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl hover:border-black transition"
               >
-                Clear
+                Təmizlə
               </button>
               <button
                 onClick={() => setShowDesignModal(false)}
                 className="flex-1 px-6 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition"
               >
-                Save
+                Yadda saxla
               </button>
             </div>
           </div>
         </div>
       )}
+
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -658,10 +786,10 @@ const CreatePerfume = () => {
                 <Check size={48} className="text-green-600" />
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Your Perfume is Ready!
+                Qoxunuz Hazırdır!
               </h2>
               <p className="text-gray-600">
-                Your custom fragrance has been created successfully
+                Xüsusi ətiriniz uğurla yaradıldı
               </p>
             </div>
 
@@ -683,7 +811,7 @@ const CreatePerfume = () => {
                   {perfumeData.perfumeCategory}
                 </p>
                 <p className="text-sm text-gray-600">
-                  with {perfumeData.magnifier}
+                  {perfumeData.magnifier} ilə
                 </p>
                 {perfumeData.engraving && (
                   <p className="text-sm text-gray-800 mt-2 font-semibold italic">
@@ -691,31 +819,41 @@ const CreatePerfume = () => {
                   </p>
                 )}
                 <p className="text-2xl font-bold text-gray-900 mt-4">
-                  US${" "}
                   {perfumeData.bottleSize === "30"
-                    ? "138"
+                    ? "22"
                     : perfumeData.bottleSize === "50"
-                      ? "198"
+                      ? "32"
                       : perfumeData.bottleSize === "70"
-                        ? "258"
-                        : "318"}
+                        ? "37"
+                        : "40"}{" "}
+                  AZN
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={generatePDF}
-              className="w-full px-8 py-4 bg-black text-white rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 text-lg font-semibold mb-4"
-            >
-              <Download size={24} />
-              Download Your Order Details
-            </button>
+            <div className="flex flex-col gap-3 mb-4">
+              <button
+                onClick={sendToWhatsApp}
+                className="w-full px-8 py-4 bg-linear-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center gap-2 text-lg font-semibold shadow-lg hover:shadow-xl"
+              >
+                <MessageCircle size={24} />
+                WhatsApp ilə Göndər
+              </button>
+
+              <button
+                onClick={generatePDF}
+                className="w-full px-8 py-4 bg-black text-white rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 text-lg font-semibold"
+              >
+                <Download size={24} />
+                Qəbzi Yüklə
+              </button>
+            </div>
 
             <button
               onClick={() => setShowSuccessModal(false)}
               className="text-gray-600 hover:text-gray-900 transition"
             >
-              Close
+              Bağla
             </button>
           </div>
         </div>
