@@ -414,7 +414,7 @@ const PerfumeHero3D: React.FC = () => {
               <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-gray-100 via-gray-50 to-white rounded-2xl sm:rounded-3xl z-20">
                 <div className="text-center">
                   <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4" />
-                  <p className="text-gray-600 text-sm sm:text-base">Loading 3D...</p>
+                  <p className="text-gray-600 text-sm sm:text-base">Yüklənir...</p>
                 </div>
               </div>
             )}

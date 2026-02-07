@@ -77,7 +77,7 @@ const WhyChooseUs: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 py-20 px-4">
+    <div className="min-h-screen px-4 mb-20">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <motion.div
@@ -142,7 +142,7 @@ const WhyChooseUs: React.FC = () => {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 + 0.2, duration: 0.5 }}
                   >
-                    <span className="text-6xl font-bold text-gray-100 group-hover:text-gray-200 transition-colors duration-300">
+                    <span className="text-6xl font-bold text-black transition-colors duration-300">
                       {feature.number}
                     </span>
                     <motion.div
@@ -200,7 +200,7 @@ const WhyChooseUs: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <motion.button
-            className="px-8 py-4 bg-gray-900 text-white rounded-full font-medium text-lg shadow-lg hover:shadow-2xl transition-all duration-300"
+            className="px-8 py-4 bg-gray-900 text-white rounded-md font-medium text-lg shadow-lg hover:shadow-2xl transition-all duration-300"
             whileHover={{ 
               scale: 1.05,
               boxShadow: "0 20px 40px rgba(0,0,0,0.2)"

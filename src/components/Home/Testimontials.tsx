@@ -1,244 +1,114 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const PartnersTestimonials: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+interface Testimonial {
+  id: number;
+  name: string;
+  role: string;
+  feedback: string;
+}
 
-  const partners = [
-    { name: 'ProfitWell', logo: 'ProfitWell' },
-    { name: 'ShipBob', logo: 'ShipBob' },
-    { name: 'demio', logo: 'demio' },
-    { name: 'Fast Company', logo: 'FASTOMPANY' },
-    { name: 'AfterPay', logo: 'AfterPay' },
-  ];
+const testimonials: Testimonial[] = [
+  {
+    id: 1,
+    name: "Anne Oliva",
+    role: "Wall Painter Designer",
+    feedback: "Coco Noir Eau de Parfum is the ultimate expression of feminine power. With radiant grapefruit and bergamot, sensual rose and jasmine, and an unforgettable base of patchouli and frankincense—this is a perfume that lingers long after you've left the room. Encased in a sleek black bottle, it's more than a fragrance—it's a signature."
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    role: "Creative Director",
+    feedback: "Working with this team has been an absolute pleasure. Their attention to detail and commitment to excellence is unmatched in the industry. Every project exceeds expectations."
+  },
+  {
+    id: 3,
+    name: "Sarah Williams",
+    role: "Brand Strategist",
+    feedback: "The level of professionalism and creativity brought to our campaigns has transformed our brand identity. We couldn't be happier with the results and ongoing partnership."
+  }
+];
 
-  const testimonials = [
-    {
-      id: 1,
-      text: 'Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.',
-      author: 'Serhiy Hipskyy',
-      position: 'CEO Universal',
-      avatar: '👤'
-    },
-    {
-      id: 2,
-      text: 'Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.',
-      author: 'Justus Menke',
-      position: 'CEO Eronaman',
-      avatar: '👤'
-    },
-    {
-      id: 3,
-      text: 'Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.',
-      author: 'Britain Eriksen',
-      position: 'CEO Universal',
-      avatar: '👤'
-    }
-  ];
+export default function ClientFeedback() {
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
-
-  const partnerVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 0.6,
-      scale: 1,
-      transition: {
-        duration: 0.5
-      }
-    },
-    hover: {
-      opacity: 1,
-      scale: 1.05,
-      transition: {
-        duration: 0.3
-      }
-    }
-  };
+  const currentTestimonial = testimonials[currentIndex];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Partners Section */}
-        <motion.div 
-          className="mb-40 mt-20"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={containerVariants}
-        >
-          <motion.h2 
-            className="text-5xl md:text-6xl text-center mb-16 text-gray-900"
-            variants={itemVariants}
-          >
-            Our Partners
-          </motion.h2>
-          <div className="flex flex-wrap items-center justify-center gap-12 md:gap-20">
-            {partners.map((partner, index) => (
-              <motion.div
-                key={index}
-                className="text-2xl md:text-3xl font-semibold text-gray-700"
-                variants={partnerVariants}
-                whileHover="hover"
-              >
-                {partner.logo}
-              </motion.div>
-            ))}
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-teal-900 flex items-center justify-center p-6 sm:p-8">
+      <div className="max-w-7xl w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          {/* Left Section - Header */}
+          <div className="space-y-4">
+            <p className="text-gray-400 text-sm tracking-wider uppercase font-light">
+              Client Feedback
+            </p>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light text-white leading-tight">
+              What our client say's about us
+            </h1>
           </div>
-        </motion.div>
 
-        {/* Testimonials Section */}
-        <motion.div 
-          className="relative"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={containerVariants}
-        >
-          <motion.h2 
-            className="text-5xl md:text-6xl text-center mb-8 text-gray-900"
-            variants={itemVariants}
-          >
-            Testimonials
-          </motion.h2>
-          
-          <motion.p 
-            className="text-center text-gray-600 mb-16 max-w-2xl mx-auto"
-            variants={itemVariants}
-          >
-            At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores.
-          </motion.p>
+          {/* Right Section - Testimonial Content */}
+          <div className="space-y-8">
+            {/* Client Info */}
+            <div className="space-y-2">
+              <h3 className="text-3xl lg:text-4xl font-light text-white">
+                {currentTestimonial.name}
+              </h3>
+              <p className="text-gray-400 text-base font-light">
+                {currentTestimonial.role}
+              </p>
+            </div>
 
-          {/* Navigation Arrows */}
-          <motion.div 
-            className="flex items-center justify-center gap-8 mb-12"
-            variants={itemVariants}
-          >
-            <motion.button
-              onClick={prevSlide}
-              className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center"
-              aria-label="Previous testimonial"
-              whileHover={{ scale: 1.1, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ChevronLeft className="w-6 h-6 text-gray-600" />
-            </motion.button>
-            <motion.button
-              onClick={nextSlide}
-              className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center"
-              aria-label="Next testimonial"
-              whileHover={{ scale: 1.1, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ChevronRight className="w-6 h-6 text-gray-600" />
-            </motion.button>
-          </motion.div>
+            {/* Feedback Text */}
+            <p className="text-gray-300 text-lg lg:text-xl leading-relaxed font-light">
+              {currentTestimonial.feedback}
+            </p>
 
-          {/* Testimonials Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.id}
-                className="bg-white rounded-lg p-8 shadow-sm"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ 
-                  duration: 0.5, 
-                  delay: index * 0.1 
-                }}
-                animate={{
-                  opacity: index === currentSlide ? 1 : 0.6,
-                  scale: index === currentSlide ? 1 : 0.95,
-                }}
-                whileHover={{
-                  scale: 1.02,
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-                  transition: { duration: 0.3 }
-                }}
+            {/* Navigation Arrows */}
+            <div className="flex gap-4 pt-4">
+              <button
+                onClick={handlePrevious}
+                className="w-14 h-14 rounded-full border border-gray-600 flex items-center justify-center hover:bg-white/10 hover:border-gray-400 transition-all duration-300 group"
+                aria-label="Previous testimonial"
               >
-                {/* Star Rating */}
-                <motion.div 
-                  className="flex gap-1 mb-6"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  transition={{ delay: index * 0.1 + 0.2, duration: 0.5 }}
-                >
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ scale: 0, rotate: -180 }}
-                      whileInView={{ scale: 1, rotate: 0 }}
-                      transition={{ 
-                        delay: index * 0.1 + 0.2 + (i * 0.05),
-                        type: "spring",
-                        stiffness: 200
-                      }}
-                    >
-                      <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    </motion.div>
-                  ))}
-                </motion.div>
+                <ChevronLeft className="w-6 h-6 text-gray-400 group-hover:text-white transition-colors" />
+              </button>
+              <button
+                onClick={handleNext}
+                className="w-14 h-14 rounded-full border border-gray-600 flex items-center justify-center hover:bg-white/10 hover:border-gray-400 transition-all duration-300 group"
+                aria-label="Next testimonial"
+              >
+                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-white transition-colors" />
+              </button>
+            </div>
 
-                {/* Testimonial Text */}
-                <p className="text-gray-600 mb-8 leading-relaxed">
-                  {testimonial.text}
-                </p>
-
-                {/* Author Info */}
-                <motion.div 
-                  className="flex items-center gap-4"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 + 0.4, duration: 0.5 }}
-                >
-                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-2xl">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">
-                      {testimonial.author}
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      {testimonial.position}
-                    </p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            ))}
+            {/* Indicator Dots */}
+            <div className="flex gap-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    index === currentIndex 
+                      ? 'w-8 bg-white' 
+                      : 'w-2 bg-gray-600 hover:bg-gray-500'
+                  }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
-};
-
-export default PartnersTestimonials;
+}
