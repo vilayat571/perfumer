@@ -8,6 +8,7 @@ import ExampleFragrances from "../components/Home/Examples";
 import Footer from "../components/Layout/Footer";
 import "../assets/styles/home.css";
 import Intro from "../components/Home/Intro";
+import AboutSection from "../components/Home/About";
 
 const HeroSection: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const HeroSection: React.FC = () => {
       <Navbar />
       <Intro />
       <WhyUs />
+      <AboutSection />
       <Partners />
       <ClientFeedbacks />
       <FAQ />

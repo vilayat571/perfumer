@@ -13,22 +13,22 @@ const WhyUs = () => {
       icon: Shield,
       title: "Keyfiyyət Zəmanəti",
       description: "Yüksək keyfiyyətli təbii maddələrdən istifadə edirik",
-      color: "from-blue-400 to-cyan-500",
-      bgColor: "bg-gradient-to-br from-blue-50 to-cyan-50",
+      color: "from-amber-400 to-orange-500",
+      bgColor: "bg-gradient-to-br from-amber-50 to-orange-50",
     },
     {
       icon: Heart,
       title: "Müştəri Məmnuniyyəti",
       description: "Sizin xoşbəxtliyiniz bizim prioritetimizdir",
-      color: "from-rose-400 to-pink-500",
-      bgColor: "bg-gradient-to-br from-rose-50 to-pink-50",
+      color: "from-amber-400 to-orange-500",
+      bgColor: "bg-gradient-to-br from-amber-50 to-orange-50",
     },
     {
       icon: Truck,
       title: "Sürətli Çatdırılma",
       description: "Sifarişinizi tez və etibarlı şəkildə çatdırırıq",
-      color: "from-green-400 to-emerald-500",
-      bgColor: "bg-gradient-to-br from-green-50 to-emerald-50",
+      color: "from-amber-400 to-orange-500",
+      bgColor: "bg-gradient-to-br from-amber-50 to-orange-50",
     },
   ];
 

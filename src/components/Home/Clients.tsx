@@ -8,7 +8,7 @@ const ClientFeedbacks = () => {
       rating: 5,
       text: "ZANA ilə öz ətirimi yaratmaq əla təcrübə idi. Komanda çox peşəkar və ətir fantastikdir!",
       avatar: "👩",
-      color: "from-pink-100 to-rose-100",
+      color: "bg-white",
     },
     {
       name: "Elvin Həsənov",
@@ -16,7 +16,7 @@ const ClientFeedbacks = () => {
       rating: 5,
       text: "Keyfiyyət və xidmət əla səviyyədədir. Hər kəsə tövsiyə edirəm!",
       avatar: "👨",
-      color: "from-blue-100 to-cyan-100",
+      color: "bg-white",
     },
     {
       name: "Nigar Əliyeva",
@@ -24,7 +24,7 @@ const ClientFeedbacks = () => {
       rating: 5,
       text: "Unikal ətir, unikal təcrübə. ZANA-ya təşəkkür edirəm!",
       avatar: "👩‍🦰",
-      color: "from-amber-100 to-orange-100",
+      color: "bg-white",
     },
     {
       name: "Rəşad Quliyev",
@@ -32,7 +32,7 @@ const ClientFeedbacks = () => {
       rating: 5,
       text: "Mükəmməl xidmət və keyfiyyət. Ətrim həqiqətən unikaldır!",
       avatar: "🧔",
-      color: "from-green-100 to-emerald-100",
+      color: "bg-white",
     },
     {
       name: "Səbinə Nəsirova",
@@ -40,7 +40,7 @@ const ClientFeedbacks = () => {
       rating: 5,
       text: "ZANA ilə ətir yaratmaq həqiqətən xüsusi bir prosesdir. Çox razıyam!",
       avatar: "👱‍♀️",
-      color: "from-purple-100 to-pink-100",
+      color: "bg-white",
     },
     {
       name: "Tural Əhmədov",
@@ -48,7 +48,7 @@ const ClientFeedbacks = () => {
       rating: 5,
       text: "Profesional komanda, yüksək keyfiyyət. 10/10 tövsiyə edirəm!",
       avatar: "👨‍💼",
-      color: "from-indigo-100 to-blue-100",
+      color: "bg-white",
     },
   ];
 
