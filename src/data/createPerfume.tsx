@@ -71,7 +71,7 @@ export const MAGNIFIERS = [
 
 export const BOTTLE_IMAGES = {
   "30": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp",
-  "50": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp",
+  "50": "https://manage.parfumbar.az/cdn/storage/products_images/nzdhJY3eYrmeFNDBh/HD/nzdhJY3eYrmeFNDBh.webp",
   "70": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp",
   "100": "https://file.aiquickdraw.com/imgcompressed/img/compressed_9491630784be147483ac24b88839cdc2.webp"
 };

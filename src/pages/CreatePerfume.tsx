@@ -414,9 +414,8 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                       <img
                         src={img}
                         alt={type}
-                        className="w-full h-32 object-contain mb-3"
+                        className="w-full object-cover rounded mb-3"
                       />
-                      <div className="font-semibold">{type}</div>
                     </button>
                   ))}
                 </div>
