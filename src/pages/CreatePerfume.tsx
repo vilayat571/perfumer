@@ -1,76 +1,186 @@
 /* eslint-disable react-hooks/purity */
-import { useState } from "react";
-import { X, ChevronRight, Check, Download, MessageCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { X, Check, Download, MessageCircle, AlertTriangle } from "lucide-react";
 import {
   BOTTLE_IMAGES,
-  PERFUME_CATEGORIES,
   POCKET_IMAGES,
-  SCENT_MAGNIFIERS
 } from "../data/createPerfume";
 import Header from "../components/CreatePerfume/Header";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const INGREDIENTS = [
+  "Rose", "Cedar", "Jasmine", "Mimosa", "Peony", "Neroli", "Tea",
+  "Bergamot", "Ginger", "Mandarin", "Berry", "Peach", "Lavender",
+  "Rosemary", "Leather", "Cashmere", "Amber", "Vanilla", "Honey",
+  "Musk", "Caramel", "Vetiver", "Oud", "Patchouli", "Orange", "Lime",
+  "Magnolia", "Marijuana", "Mango", "Wood",
+];
+
+// Pairs that cannot be mixed together
+const INCOMPATIBLE_PAIRS: [string, string][] = [
+  ["Amber", "Caramel"],
+  ["Amber", "Vanilla"],
+  ["Caramel", "Vanilla"],
+  ["Leather", "Patchouli"],
+  ["Oud", "Wood"],
+  ["Vanilla", "Neroli"],
+  ["Caramel", "Neroli"],
+];
+
+const BOTTLE_SIZES = [
+  { size: "10", price: "15", label: "10ML" },
+  { size: "50", price: "90", label: "50ML" },
+];
+
+const WHATSAPP_NUMBER = "994105319193";
+const ORDER_HOURS = "10:00–18:00";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getIncompatibleWith(ingredient: string, selected: string[]): string[] {
+  const blocked: string[] = [];
+  for (const sel of selected) {
+    for (const pair of INCOMPATIBLE_PAIRS) {
+      if (pair.includes(ingredient) && pair.includes(sel) && ingredient !== sel) {
+        blocked.push(sel);
+      }
+    }
+  }
+  return blocked;
+}
+
+function isBlocked(ingredient: string, selected: string[]): boolean {
+  return getIncompatibleWith(ingredient, selected).length > 0;
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 export interface PerfumeData {
-  bottleType: string;
   bottleSize: string;
-  selectedPerfume: string;
-  perfumeCategory: string;
-  magnifier: string;
+  ingredients: string[];          // max 3
+  proportions: Record<string, number>; // ingredient → %
   engraving: string;
   pocketImage: string;
   textPosition: { x: number; y: number };
 }
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const CreatePerfume = () => {
   const [step, setStep] = useState(0);
   const [perfumeData, setPerfumeData] = useState<PerfumeData>({
-    bottleType: "",
     bottleSize: "",
-    selectedPerfume: "",
-    perfumeCategory: "",
-    magnifier: "",
+    ingredients: [],
+    proportions: {},
     engraving: "",
     pocketImage: "",
     textPosition: { x: 30, y: 30 },
   });
-  const [showPerfumeModal, setShowPerfumeModal] = useState(false);
-  const [showMagnifierModal, setShowMagnifierModal] = useState(false);
+
+  // Modals
   const [showDesignModal, setShowDesignModal] = useState(false);
   const [showPocketModal, setShowPocketModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Shake animation state: ingredient name currently shaking
+  const [shakingIngredient, setShakingIngredient] = useState<string | null>(null);
+  const shakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Drag state for engraving text
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const WHATSAPP_NUMBER = "60176487917";
+  // Single bottle image (only one bottle type now)
+  const bottleImage = Object.values(BOTTLE_IMAGES)[0] as string;
 
-  const BOTTLE_SIZES = [
-    { size: "30", price: "22", label: "30ML" },
-    { size: "50", price: "32", label: "50ML" },
-    { size: "70", price: "37", label: "70ML" },
-    { size: "100", price: "45", label: "100ML" },
-  ];
+  // ── Computed ──────────────────────────────────────────────────────────────
 
-  const handleCreatePerfume = () => {
-    setShowSuccessModal(true);
-  };
+  const totalProportion = Object.values(perfumeData.proportions).reduce((a, b) => a + b, 0);
+  const remaining = 100 - totalProportion;
 
   const getPrice = () => {
-    const sizeData = BOTTLE_SIZES.find((b) => b.size === perfumeData.bottleSize);
-    return sizeData?.price || "0";
+    return BOTTLE_SIZES.find((b) => b.size === perfumeData.bottleSize)?.price ?? "0";
   };
 
+  const isStepComplete = (): boolean => {
+    if (step === 0) return perfumeData.bottleSize !== "";
+    if (step === 1) return perfumeData.ingredients.length > 0 && totalProportion === 100;
+    if (step === 2) return true; // optional
+    if (step === 3) return perfumeData.pocketImage !== "";
+    return true;
+  };
+
+  const TOTAL_STEPS = 4;
+
+  // ── Ingredient helpers ────────────────────────────────────────────────────
+
+  const triggerShake = (ingredient: string) => {
+    if (shakeTimer.current) clearTimeout(shakeTimer.current);
+    setShakingIngredient(ingredient);
+    shakeTimer.current = setTimeout(() => setShakingIngredient(null), 600);
+  };
+
+  const toggleIngredient = (ingredient: string) => {
+    const { ingredients, proportions } = perfumeData;
+
+    // Already selected → deselect
+    if (ingredients.includes(ingredient)) {
+      const newIngredients = ingredients.filter((i) => i !== ingredient);
+      const newProportions = { ...proportions };
+      delete newProportions[ingredient];
+      setPerfumeData({ ...perfumeData, ingredients: newIngredients, proportions: newProportions });
+      return;
+    }
+
+    // Check max 3
+    if (ingredients.length >= 3) return;
+
+    // Check incompatibility
+    if (isBlocked(ingredient, ingredients)) {
+      // Shake all blocking ingredients
+      for (const pair of INCOMPATIBLE_PAIRS) {
+        if (pair.includes(ingredient)) {
+          const other = pair.find((p) => p !== ingredient && ingredients.includes(p));
+          if (other) triggerShake(other);
+        }
+      }
+      return;
+    }
+
+    // Add ingredient with 0% proportion
+    setPerfumeData({
+      ...perfumeData,
+      ingredients: [...ingredients, ingredient],
+      proportions: { ...proportions, [ingredient]: 0 },
+    });
+  };
+
+  const updateProportion = (ingredient: string, value: number) => {
+    setPerfumeData({
+      ...perfumeData,
+      proportions: { ...perfumeData.proportions, [ingredient]: value },
+    });
+  };
+
+  // ── WhatsApp / PDF ────────────────────────────────────────────────────────
+
   const sendToWhatsApp = () => {
+    const ingredientLines = perfumeData.ingredients
+      .map((ing) => `  • ${ing}: ${perfumeData.proportions[ing] ?? 0}%`)
+      .join("\n");
+
     const message = `
 🌸 ZANA - Yeni Sifariş 🌸
 
-Qoxu: ${perfumeData.selectedPerfume}
-Kateqoriya: ${perfumeData.perfumeCategory}
 Ölçü: ${perfumeData.bottleSize}ML
-Gücləndirici: ${perfumeData.magnifier}
+Qiymət: ${getPrice()} AZN
+
+İnqrediyentlər:
+${ingredientLines}
+
 ${perfumeData.engraving ? `Həkk: "${perfumeData.engraving}"` : ""}
 Cib: ${perfumeData.pocketImage ? `Dizayn ${perfumeData.pocketImage}` : "Yoxdur"}
-
-Qiymət: ${getPrice()} AZN
 
 Tarix: ${new Date().toLocaleDateString("az-AZ")}
 
@@ -78,457 +188,195 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
     `.trim();
 
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
-    window.open(whatsappUrl, "_blank");
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, "_blank");
   };
 
   const generatePDF = () => {
-    const pdfContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 40px 20px;
-    }
-    
-    .container {
-      background: white;
-      max-width: 500px;
-      margin: 0 auto;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    .header {
-      background: #2c2c2c;
-      padding: 30px;
-      text-align: center;
-      color: white;
-    }
-    
-    .logo {
-      font-size: 32px;
-      font-weight: bold;
-      letter-spacing: 2px;
-    }
-    
-    .content {
-      padding: 30px;
-    }
-    
-    .bottle-section {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: #f9f9f9;
-      border-radius: 10px;
-    }
-    
-    .bottle-container {
-      position: relative;
-      display: inline-block;
-      margin: 0 auto;
-    }
-    
-    .bottle-image {
-      max-width: 200px;
-      height: auto;
-      display: block;
-    }
-    
-    .bottle-text {
-      position: absolute;
-      left: ${perfumeData.textPosition.x}%;
-      top: ${perfumeData.textPosition.y}%;
-      transform: translate(-50%, -50%);
-      font-size: 12px;
-      font-weight: bold;
-      font-style: italic;
-      color: #2c2c2c;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 6px 14px;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      white-space: nowrap;
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .pocket-section {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: #f9f9f9;
-      border-radius: 10px;
-    }
-    
-    .pocket-container {
-      position: relative;
-      display: inline-block;
-      margin: 0 auto;
-    }
-    
-    .pocket-image {
-      max-width: 200px;
-      height: auto;
-      display: block;
-      border-radius: 10px;
-    }
-    
-    .pocket-text {
-      position: absolute;
-      left: ${perfumeData.textPosition.x}%;
-      top: ${perfumeData.textPosition.y}%;
-      transform: translate(-50%, -50%);
-      font-size: 11px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-      white-space: nowrap;
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .section {
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #eee;
-    }
-    
-    .section:last-child {
-      border-bottom: none;
-    }
-    
-    .label {
-      font-size: 12px;
-      color: #666;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-    
-    .value {
-      font-size: 18px;
-      color: #2c2c2c;
-      font-weight: bold;
-    }
-    
-    .price {
-      text-align: center;
-      margin: 30px 0;
-    }
-    
-    .price-amount {
-      font-size: 42px;
-      font-weight: bold;
-      color: #2c2c2c;
-    }
-    
-    .footer {
-      text-align: center;
-      padding: 20px;
-      background: #f9f9f9;
-      font-size: 12px;
-      color: #666;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">ZANA</div>
-    </div>
-    
-    <div class="content">
-      <div class="bottle-section">
-        <div class="bottle-container">
-          <img 
-            src="${BOTTLE_IMAGES[perfumeData.bottleType as keyof typeof BOTTLE_IMAGES]}" 
-            alt="Bottle" 
-            class="bottle-image"
-          />
-          ${perfumeData.engraving ? `
-          <div class="bottle-text">"${perfumeData.engraving}"</div>
-          ` : ''}
-        </div>
-      </div>
-      
-      ${perfumeData.pocketImage ? `
-      <div class="pocket-section">
-        <div class="label">Cib Dizaynı</div>
-        <div class="pocket-container">
-          <img 
-            src="${POCKET_IMAGES[perfumeData.pocketImage as keyof typeof POCKET_IMAGES]}" 
-            alt="Pocket" 
-            class="pocket-image"
-          />
-          ${perfumeData.engraving ? `
-          <div class="pocket-text">${perfumeData.engraving}</div>
-          ` : ''}
-        </div>
-      </div>
-      ` : ''}
-      
-      <div class="section">
-        <div class="label">Qoxu</div>
-        <div class="value">${perfumeData.selectedPerfume}</div>
-      </div>
-      
-      <div class="section">
-        <div class="label">Kateqoriya</div>
-        <div class="value">${perfumeData.perfumeCategory}</div>
-      </div>
-      
-      <div class="section">
-        <div class="label">Ölçü</div>
-        <div class="value">${perfumeData.bottleSize}ML</div>
-      </div>
-      
-      <div class="section">
-        <div class="label">Gücləndirici</div>
-        <div class="value">${perfumeData.magnifier}</div>
-      </div>
-      
-      <div class="price">
-        <div class="label">Qiymət</div>
-        <div class="price-amount">${getPrice()} AZN</div>
-      </div>
-    </div>
-    
-    <div class="footer">
-      ${new Date().toLocaleDateString("az-AZ", { year: "numeric", month: "long", day: "numeric" })}
-      <br>
-      ZANA - Custom Fragrance
-    </div>
-  </div>
-</body>
-</html>
-    `;
+    const ingredientLines = perfumeData.ingredients
+      .map(
+        (ing) =>
+          `<div class="ingredient-row"><span class="ing-name">${ing}</span><span class="ing-pct">${perfumeData.proportions[ing] ?? 0}%</span></div>`
+      )
+      .join("");
 
-    const blob = new Blob([pdfContent], { type: "text/html" });
+    const html = `
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; background:#f5f5f5; padding:40px 20px; }
+  .container { background:white; max-width:500px; margin:0 auto; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.1); }
+  .header { background:#2c2c2c; padding:30px; text-align:center; color:white; }
+  .logo { font-size:32px; font-weight:bold; letter-spacing:2px; }
+  .content { padding:30px; }
+  .section { margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #eee; }
+  .section:last-child { border-bottom:none; }
+  .label { font-size:12px; color:#666; text-transform:uppercase; margin-bottom:8px; }
+  .value { font-size:18px; color:#2c2c2c; font-weight:bold; }
+  .ingredient-row { display:flex; justify-content:space-between; padding:4px 0; }
+  .ing-name { color:#444; }
+  .ing-pct { font-weight:bold; color:#2c2c2c; }
+  .price { text-align:center; margin:30px 0; }
+  .price-amount { font-size:42px; font-weight:bold; color:#2c2c2c; }
+  .footer { text-align:center; padding:20px; background:#f9f9f9; font-size:12px; color:#666; }
+</style></head><body>
+<div class="container">
+  <div class="header"><div class="logo">ZANA</div></div>
+  <div class="content">
+    <div class="section"><div class="label">Ölçü</div><div class="value">${perfumeData.bottleSize}ML</div></div>
+    <div class="section"><div class="label">İnqrediyentlər</div>${ingredientLines}</div>
+    ${perfumeData.engraving ? `<div class="section"><div class="label">Həkk</div><div class="value">"${perfumeData.engraving}"</div></div>` : ""}
+    ${perfumeData.pocketImage ? `<div class="section"><div class="label">Cib dizaynı</div><div class="value">Dizayn ${perfumeData.pocketImage}</div></div>` : ""}
+    <div class="price"><div class="label">Qiymət</div><div class="price-amount">${getPrice()} AZN</div></div>
+  </div>
+  <div class="footer">${new Date().toLocaleDateString("az-AZ", { year:"numeric", month:"long", day:"numeric" })}<br>ZANA - Custom Fragrance</div>
+</div>
+</body></html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ZANA-${perfumeData.selectedPerfume}-${Date.now()}.html`;
+    a.download = `ZANA-${perfumeData.bottleSize}ml-${Date.now()}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const isStepComplete = () => {
-    if (step === 0) return perfumeData.bottleType !== "";
-    if (step === 1) return perfumeData.bottleSize !== "";
-    if (step === 2) return perfumeData.selectedPerfume !== "";
-    if (step === 3) return perfumeData.magnifier !== "";
-    if (step === 4) return true; // Design is optional
-    if (step === 5) return perfumeData.pocketImage !== "";
-    return true;
-  };
-
-  const filteredPerfumes = Object.entries(PERFUME_CATEGORIES).reduce<
-    Record<string, (typeof PERFUME_CATEGORIES)[keyof typeof PERFUME_CATEGORIES]>
-  >(
-    (acc, [category, perfumes]) => {
-      const filtered = perfumes.filter((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-      if (filtered.length > 0) {
-        acc[category] = filtered;
-      }
-      return acc;
-    },
-    {},
-  );
-
-  const getSelectedPerfumeImage = () => {
-    for (const category of Object.values(PERFUME_CATEGORIES)) {
-      const perfume = category.find(
-        (p) => p.name === perfumeData.selectedPerfume,
-      );
-      if (perfume) return perfume.image;
-    }
-    return "";
-  };
-
-  const getSelectedMagnifierImage = () => {
-    if (!perfumeData.selectedPerfume || !perfumeData.magnifier) return "";
-    const magnifiers = SCENT_MAGNIFIERS[perfumeData.selectedPerfume];
-    if (!magnifiers) return "";
-    const magnifier = magnifiers.find((m) => m.name === perfumeData.magnifier);
-    return magnifier?.image || "";
-  };
-
-  const getAvailableMagnifiers = () => {
-    if (!perfumeData.selectedPerfume) return [];
-    return SCENT_MAGNIFIERS[perfumeData.selectedPerfume] || [];
-  };
+  // ── Drag handlers for engraving text ─────────────────────────────────────
 
   const handleTextDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    setDragOffset({
-      x: clientX - perfumeData.textPosition.x,
-      y: clientY - perfumeData.textPosition.y,
-    });
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    setDragOffset({ x: clientX - perfumeData.textPosition.x, y: clientY - perfumeData.textPosition.y });
   };
 
   const handleTextDragMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDragging) return;
     e.preventDefault();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    setPerfumeData({
-      ...perfumeData,
-      textPosition: {
-        x: clientX - dragOffset.x,
-        y: clientY - dragOffset.y,
-      },
-    });
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    setPerfumeData({ ...perfumeData, textPosition: { x: clientX - dragOffset.x, y: clientY - dragOffset.y } });
   };
 
-  const handleTextDragEnd = () => {
-    setIsDragging(false);
-  };
+  const handleTextDragEnd = () => setIsDragging(false);
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
+      {/* Shake + step animations */}
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0) scale(1.02); }
+          20% { transform: translateX(-6px) scale(1.02); }
+          40% { transform: translateX(6px) scale(1.02); }
+          60% { transform: translateX(-4px) scale(1.02); }
+          80% { transform: translateX(4px) scale(1.02); }
+        }
+        .shake { animation: shake 0.55s ease; border-color: #ef4444 !important; background: #fef2f2 !important; }
+
+        @keyframes scaleIn {
+          from { opacity:0; transform:scale(0.93); }
+          to   { opacity:1; transform:scale(1); }
+        }
+        @keyframes fadeInUp {
+          from { opacity:0; transform:translateY(16px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .anim-scale  { animation: scaleIn  0.28s ease-out both; }
+        .anim-fadeup { animation: fadeInUp 0.32s ease-out both; }
+
+        /* Proportion slider */
+        input[type=range] {
+          -webkit-appearance:none; width:100%; height:6px;
+          border-radius:3px; outline:none; cursor:pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+          -webkit-appearance:none; width:18px; height:18px;
+          border-radius:50%; background:#2c2c2c; cursor:pointer;
+          box-shadow:0 1px 4px rgba(0,0,0,.25);
+        }
+      `}</style>
+
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Simple Progress */}
+
+        {/* Progress bar */}
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2">
-            {[0, 1, 2, 3, 4, 5].map((s) => (
-              <div
-                key={s}
-                className={`h-2 rounded-full transition-all ${
-                  s <= step ? "w-12 bg-black" : "w-8 bg-gray-300"
-                }`}
-              />
+            {Array.from({ length: TOTAL_STEPS }, (_, s) => (
+              <div key={s} className={`h-2 rounded-full transition-all ${s <= step ? "w-12 bg-black" : "w-8 bg-gray-300"}`} />
             ))}
           </div>
-          <p className="text-center text-sm text-gray-600 mt-3">
-            Addım {step + 1} / 6
-          </p>
+          <p className="text-center text-sm text-gray-600 mt-3">Addım {step + 1} / {TOTAL_STEPS}</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Preview */}
+
+          {/* ── Preview ── */}
           <div className="bg-white rounded-2xl p-8 shadow-sm">
             <h3 className="text-lg font-semibold mb-4">Önizləmə</h3>
             <div className="aspect-square bg-gray-50 rounded-xl flex items-center justify-center p-4">
-              {perfumeData.bottleType ? (
-                <div className="text-center w-full">
-                  {/* Bottle with text overlay */}
-                  <div className="relative inline-block">
-                    <img
-                      src={
-                        BOTTLE_IMAGES[
-                          perfumeData.bottleType as keyof typeof BOTTLE_IMAGES
-                        ]
-                      }
-                      alt="Bottle"
-                      className="w-48 h-auto mx-auto"
-                    />
-                    {perfumeData.engraving && (
-                      <div 
-                        className="absolute bg-white/95 px-3 py-1.5 rounded-lg shadow-lg cursor-move select-none"
-                        style={{
-                          left: `${perfumeData.textPosition.x}%`,
-                          top: `${perfumeData.textPosition.y}%`,
-                          transform: 'translate(-50%, -50%)',
-                        }}
-                        onMouseDown={handleTextDragStart}
-                        onMouseMove={handleTextDragMove}
-                        onMouseUp={handleTextDragEnd}
-                        onMouseLeave={handleTextDragEnd}
-                        onTouchStart={handleTextDragStart}
-                        onTouchMove={handleTextDragMove}
-                        onTouchEnd={handleTextDragEnd}
-                      >
-                        <p className="text-xs font-bold italic text-gray-800 whitespace-nowrap">
-                          "{perfumeData.engraving}"
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Size info */}
-                  {perfumeData.bottleSize && (
-                    <div className="text-sm text-gray-600 mt-4">
-                      {perfumeData.bottleSize}ML
-                    </div>
-                  )}
-
-                  {/* Pocket Preview */}
-                  {perfumeData.pocketImage && (
-                    <div className="mt-6">
-                      <div className="text-xs text-gray-500 mb-2">Cib Dizaynı</div>
-                      <div className="relative inline-block">
-                        <img
-                          src={POCKET_IMAGES[perfumeData.pocketImage as keyof typeof POCKET_IMAGES]}
-                          alt="Pocket"
-                          className="w-32 h-auto rounded-lg shadow-md"
-                        />
-                        {perfumeData.engraving && (
-                          <div 
-                            className="absolute cursor-move select-none"
-                            style={{
-                              left: `${perfumeData.textPosition.x}%`,
-                              top: `${perfumeData.textPosition.y}%`,
-                              transform: 'translate(-50%, -50%)',
-                            }}
-                            onMouseDown={handleTextDragStart}
-                            onMouseMove={handleTextDragMove}
-                            onMouseUp={handleTextDragEnd}
-                            onMouseLeave={handleTextDragEnd}
-                            onTouchStart={handleTextDragStart}
-                            onTouchMove={handleTextDragMove}
-                            onTouchEnd={handleTextDragEnd}
-                          >
-                            <p className="text-xs font-bold text-white drop-shadow-lg">
-                              {perfumeData.engraving}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+              <div className="text-center w-full">
+                <div className="relative inline-block">
+                  <img src={bottleImage} alt="Bottle" className="w-48 h-auto mx-auto" />
+                  {perfumeData.engraving && (
+                    <div
+                      className="absolute bg-white/95 px-3 py-1.5 rounded-lg shadow-lg cursor-move select-none"
+                      style={{ left: `${perfumeData.textPosition.x}%`, top: `${perfumeData.textPosition.y}%`, transform: "translate(-50%,-50%)" }}
+                      onMouseDown={handleTextDragStart}
+                      onMouseMove={handleTextDragMove}
+                      onMouseUp={handleTextDragEnd}
+                      onMouseLeave={handleTextDragEnd}
+                      onTouchStart={handleTextDragStart}
+                      onTouchMove={handleTextDragMove}
+                      onTouchEnd={handleTextDragEnd}
+                    >
+                      <p className="text-xs font-bold italic text-gray-800 whitespace-nowrap">"{perfumeData.engraving}"</p>
                     </div>
                   )}
                 </div>
-              ) : (
-                <p className="text-gray-400">Qab seç</p>
-              )}
+
+                {perfumeData.bottleSize && (
+                  <div className="text-sm text-gray-600 mt-4">{perfumeData.bottleSize}ML</div>
+                )}
+
+                {perfumeData.pocketImage && (
+                  <div className="mt-6">
+                    <div className="text-xs text-gray-500 mb-2">Cib Dizaynı</div>
+                    <div className="relative inline-block">
+                      <img src={POCKET_IMAGES[perfumeData.pocketImage as keyof typeof POCKET_IMAGES]} alt="Pocket" className="w-32 h-auto rounded-lg shadow-md" />
+                      {perfumeData.engraving && (
+                        <div className="absolute cursor-move select-none"
+                          style={{ left: `${perfumeData.textPosition.x}%`, top: `${perfumeData.textPosition.y}%`, transform: "translate(-50%,-50%)" }}
+                          onMouseDown={handleTextDragStart}
+                          onMouseMove={handleTextDragMove}
+                          onMouseUp={handleTextDragEnd}
+                          onMouseLeave={handleTextDragEnd}
+                          onTouchStart={handleTextDragStart}
+                          onTouchMove={handleTextDragMove}
+                          onTouchEnd={handleTextDragEnd}
+                        >
+                          <p className="text-xs font-bold text-white drop-shadow-lg">{perfumeData.engraving}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Summary */}
-            {perfumeData.selectedPerfume && (
-              <div className="mt-6 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Qoxu:</span>
-                  <span className="font-semibold">
-                    {perfumeData.selectedPerfume}
-                  </span>
-                </div>
-                {perfumeData.magnifier && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Gücləndirici:</span>
-                    <span className="font-semibold">{perfumeData.magnifier}</span>
+            {perfumeData.ingredients.length > 0 && (
+              <div className="mt-6 space-y-2">
+                {perfumeData.ingredients.map((ing) => (
+                  <div key={ing} className="flex justify-between text-sm">
+                    <span className="text-gray-600">{ing}</span>
+                    <span className="font-semibold">{perfumeData.proportions[ing] ?? 0}%</span>
                   </div>
-                )}
+                ))}
                 {perfumeData.bottleSize && (
                   <div className="flex justify-between text-lg font-bold pt-3 border-t">
                     <span>Qiymət:</span>
@@ -537,195 +385,184 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                 )}
               </div>
             )}
+
+            {/* Order hours notice */}
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 text-center">
+              Sifariş saatları: <strong>{ORDER_HOURS}</strong>
+            </div>
           </div>
 
-          {/* Selection */}
+          {/* ── Selection panel ── */}
           <div className="bg-white rounded-2xl p-8 shadow-sm">
-            {/* Step 0: Choose Bottle Type - Enhanced Design */}
-            {step === 0 && (
-              <div>
-                <div className="mb-6">
-                  <div className="inline-block p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl mb-4">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">Qab növü seç</h2>
-                  <p className="text-gray-600">İstədiyiniz qabı seçin</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {Object.entries(BOTTLE_IMAGES).map(([type, img], index) => (
-                    <button
-                      key={type}
-                      onClick={() =>
-                        setPerfumeData({ ...perfumeData, bottleType: type })
-                      }
-                      className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 ${
-                        perfumeData.bottleType === type
-                          ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg scale-105"
-                          : "border-gray-200 hover:border-purple-300 hover:shadow-md hover:scale-105 bg-white"
-                      }`}
-                      style={{ animation: `scaleIn 0.3s ease-out ${index * 0.1}s both` }}
-                    >
-                      {perfumeData.bottleType === type && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                          <Check size={14} className="text-white" />
-                        </div>
-                      )}
-                      <div className="relative aspect-square mb-3 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                        <img
-                          src={img}
-                          alt={type}
-                          className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-110"
-                        />
-                      </div>
-                      <div className={`text-center text-sm font-semibold transition-colors ${
-                        perfumeData.bottleType === type ? "text-purple-600" : "text-gray-700"
-                      }`}>
-                        Dizayn {parseInt(type) + 1}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {/* Step 1: Choose Bottle Size - Enhanced Design */}
-            {step === 1 && (
-              <div>
+            {/* Step 0: Size */}
+            {step === 0 && (
+              <div className="anim-fadeup">
                 <div className="mb-6">
                   <div className="inline-block p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl mb-4">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">Ölçü seç</h2>
-                  <p className="text-gray-600">Qab ölçüsünü seçin</p>
+                  <h2 className="text-2xl font-bold mb-1">Ölçü seç</h2>
+                  <p className="text-gray-500 text-sm">Qab həcmini seçin</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  {BOTTLE_SIZES.map(({ size, price, label }, index) => (
+                  {BOTTLE_SIZES.map(({ size, price, label }, idx) => (
                     <button
                       key={size}
-                      onClick={() =>
-                        setPerfumeData({ ...perfumeData, bottleSize: size })
-                      }
-                      className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 ${
+                      onClick={() => setPerfumeData({ ...perfumeData, bottleSize: size })}
+                      className={`relative p-10 rounded-2xl border-2 transition-all duration-300 anim-scale ${
                         perfumeData.bottleSize === size
                           ? "border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-lg scale-105"
                           : "border-gray-200 hover:border-blue-300 hover:shadow-md hover:scale-105 bg-white"
                       }`}
-                      style={{ animation: `scaleIn 0.3s ease-out ${index * 0.1}s both` }}
+                      style={{ animationDelay: `${idx * 0.1}s` }}
                     >
                       {perfumeData.bottleSize === size && (
                         <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
                           <Check size={14} className="text-white" />
                         </div>
                       )}
-                      <div className={`text-3xl font-bold mb-2 transition-colors ${
-                        perfumeData.bottleSize === size ? "text-blue-600" : "text-gray-900"
-                      }`}>
-                        {label}
-                      </div>
-                      <div className={`text-xl font-semibold transition-colors ${
-                        perfumeData.bottleSize === size ? "text-cyan-600" : "text-gray-600"
-                      }`}>
-                        {price} AZN
-                      </div>
+                      <div className={`text-4xl font-bold mb-2 ${perfumeData.bottleSize === size ? "text-blue-600" : "text-gray-900"}`}>{label}</div>
+                      <div className={`text-xl font-semibold ${perfumeData.bottleSize === size ? "text-cyan-600" : "text-gray-500"}`}>{price} AZN</div>
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Step 2: Choose Perfume */}
-            {step === 2 && (
-              <div>
-                <div className="mb-6">
+            {/* Step 1: Ingredients + proportions */}
+            {step === 1 && (
+              <div className="anim-fadeup">
+                <div className="mb-5">
                   <div className="inline-block p-3 bg-gradient-to-r from-orange-500 to-rose-500 rounded-xl mb-4">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">Qoxu seç</h2>
-                  <p className="text-gray-600">Sevimli qoxunuzu seçin</p>
+                  <h2 className="text-2xl font-bold mb-1">İnqrediyent seç</h2>
+                  <p className="text-gray-500 text-sm">Maksimum 3 inqrediyent seçin və proporsiyaları müəyyən edin</p>
                 </div>
-                <button
-                  onClick={() => setShowPerfumeModal(true)}
-                  className="w-full p-6 bg-gradient-to-r from-orange-50 to-rose-50 rounded-2xl border-2 border-orange-200 hover:border-orange-500 transition-all duration-300 flex items-center justify-between group hover:shadow-lg"
+
+                {/* Ingredient grid */}
+                <div
+                  className="grid grid-cols-3 gap-2 mb-5 overflow-y-auto pr-1"
+                  style={{ maxHeight: "220px" }}
                 >
-                  <div className="flex items-center gap-4">
-                    {getSelectedPerfumeImage() && (
-                      <div className="relative">
-                        <img
-                          src={getSelectedPerfumeImage()}
-                          alt=""
-                          className="w-14 h-14 rounded-xl object-cover shadow-md"
-                        />
-                        <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-orange-500/20 to-transparent"></div>
-                      </div>
-                    )}
-                    <div className="text-left">
-                      <div className="text-sm text-gray-500 mb-1">Qoxu</div>
-                      <div className="font-bold text-gray-900">
-                        {perfumeData.selectedPerfume || "Seç"}
-                      </div>
+                  {INGREDIENTS.map((ing, idx) => {
+                    const isSelected = perfumeData.ingredients.includes(ing);
+                    const isIncompat = !isSelected && isBlocked(ing, perfumeData.ingredients);
+                    const isMaxed = !isSelected && perfumeData.ingredients.length >= 3;
+                    const isShaking = shakingIngredient === ing;
+
+                    return (
+                      <button
+                        key={ing}
+                        onClick={() => toggleIngredient(ing)}
+                        disabled={isMaxed && !isSelected}
+                        className={`relative px-2 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all duration-200 ${
+                          isShaking ? "shake" :
+                          isSelected
+                            ? "border-orange-500 bg-gradient-to-br from-orange-50 to-rose-50 text-orange-700 shadow-md"
+                            : isIncompat
+                            ? "border-red-200 bg-red-50 text-red-400 cursor-not-allowed"
+                            : isMaxed
+                            ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
+                            : "border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-gray-700"
+                        }`}
+                        style={{ animationDelay: `${idx * 0.02}s` }}
+                      >
+                        {isSelected && (
+                          <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                            <Check size={10} className="text-white" />
+                          </div>
+                        )}
+                        {isIncompat && (
+                          <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                            <AlertTriangle size={10} className="text-white" />
+                          </div>
+                        )}
+                        {ing}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Proportion sliders */}
+                {perfumeData.ingredients.length > 0 && (
+                  <div className="space-y-4">
+                    {perfumeData.ingredients.map((ing) => {
+                      const pct = perfumeData.proportions[ing] ?? 0;
+                      return (
+                        <div key={ing}>
+                          <div className="flex justify-between text-sm font-semibold mb-1">
+                            <span className="text-gray-700">{ing}</span>
+                            <span className="text-orange-600">{pct}%</span>
+                          </div>
+                          <div className="relative flex items-center gap-2">
+                            <span className="text-xs text-gray-400 w-5">0%</span>
+                            <div className="flex-1 relative">
+                              <div className="absolute inset-0 flex items-center">
+                                <div
+                                  className="h-1.5 rounded-full bg-gradient-to-r from-orange-400 to-rose-500"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                value={pct}
+                                onChange={(e) => updateProportion(ing, Number(e.target.value))}
+                                className="relative z-10"
+                                style={{
+                                  background: `linear-gradient(to right, #fb923c ${pct}%, #e5e7eb ${pct}%)`,
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-400 w-8 text-right">100%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Remaining indicator */}
+                    <div className={`mt-3 p-3 rounded-xl text-sm font-semibold text-center ${
+                      totalProportion === 100
+                        ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                    }`}>
+                      {totalProportion === 100 ? (
+                        <span className="flex items-center justify-center gap-1.5">
+                          <Check size={16} /> Mükəmməl! 100% tamamlandı
+                        </span>
+                      ) : remaining > 0 ? (
+                        <span><strong>{remaining}%</strong> daha əlavə etməlisiniz</span>
+                      ) : (
+                        <span>Həddindən artıq! <strong>{Math.abs(remaining)}%</strong> azaldın</span>
+                      )}
                     </div>
                   </div>
-                  <ChevronRight size={24} className="text-orange-500 group-hover:translate-x-1 transition-transform" />
-                </button>
+                )}
+
+                {perfumeData.ingredients.length === 0 && (
+                  <p className="text-gray-400 text-sm text-center py-4">Yuxarıdan inqrediyent seçin</p>
+                )}
               </div>
             )}
 
-            {/* Step 3: Choose Magnifier - Enhanced Design */}
-            {step === 3 && (
-              <div>
-                <div className="mb-6">
-                  <div className="inline-block p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl mb-4">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">Gücləndirici</h2>
-                  <p className="text-gray-600">Əlavə seçin</p>
-                </div>
-                <button
-                  onClick={() => setShowMagnifierModal(true)}
-                  className="w-full p-6 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-200 hover:border-emerald-500 transition-all duration-300 flex items-center justify-between group hover:shadow-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    {getSelectedMagnifierImage() && (
-                      <div className="relative">
-                        <img
-                          src={getSelectedMagnifierImage()}
-                          alt=""
-                          className="w-14 h-14 rounded-xl object-cover shadow-md"
-                        />
-                        <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-emerald-500/20 to-transparent"></div>
-                      </div>
-                    )}
-                    <div className="text-left">
-                      <div className="text-sm text-gray-500 mb-1">Gücləndirici</div>
-                      <div className="font-bold text-gray-900">
-                        {perfumeData.magnifier || "Seç"}
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronRight size={24} className="text-emerald-500 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            )}
-
-            {/* Step 4: Design - Enhanced Design */}
-            {step === 4 && (
-              <div>
+            {/* Step 2: Design / engraving */}
+            {step === 2 && (
+              <div className="anim-fadeup">
                 <div className="mb-6">
                   <div className="inline-block p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl mb-4">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">Dizayn</h2>
-                  <p className="text-gray-600">İstəyə bağlı mətn (cib və qabda görünəcək)</p>
+                  <h2 className="text-2xl font-bold mb-1">Dizayn</h2>
+                  <p className="text-gray-500 text-sm">İstəyə bağlı mətn (cib və qabda görünəcək)</p>
                 </div>
                 <button
                   onClick={() => setShowDesignModal(true)}
@@ -733,26 +570,26 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                 >
                   <div className="text-left">
                     <div className="text-sm text-gray-500 mb-1">Həkk</div>
-                    <div className="font-bold text-gray-900">
-                      {perfumeData.engraving || "Mətn əlavə et"}
-                    </div>
+                    <div className="font-bold text-gray-900">{perfumeData.engraving || "Mətn əlavə et"}</div>
                   </div>
-                  <ChevronRight size={24} className="text-amber-500 group-hover:translate-x-1 transition-transform" />
+                  <svg className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
             )}
 
-            {/* Step 5: Choose Pocket - New Step */}
-            {step === 5 && (
-              <div>
+            {/* Step 3: Pocket design */}
+            {step === 3 && (
+              <div className="anim-fadeup">
                 <div className="mb-6">
                   <div className="inline-block p-3 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl mb-4">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">Cib dizaynı seç</h2>
-                  <p className="text-gray-600">Qoxu cibi üçün dizayn seçin</p>
+                  <h2 className="text-2xl font-bold mb-1">Cib dizaynı seç</h2>
+                  <p className="text-gray-500 text-sm">Qoxu cibi üçün dizayn seçin</p>
                 </div>
                 <button
                   onClick={() => setShowPocketModal(true)}
@@ -760,14 +597,11 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                 >
                   <div className="flex items-center gap-4">
                     {perfumeData.pocketImage && (
-                      <div className="relative">
-                        <img
-                          src={POCKET_IMAGES[perfumeData.pocketImage as keyof typeof POCKET_IMAGES]}
-                          alt=""
-                          className="w-14 h-14 rounded-xl object-cover shadow-md"
-                        />
-                        <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-violet-500/20 to-transparent"></div>
-                      </div>
+                      <img
+                        src={POCKET_IMAGES[perfumeData.pocketImage as keyof typeof POCKET_IMAGES]}
+                        alt=""
+                        className="w-14 h-14 rounded-xl object-cover shadow-md"
+                      />
                     )}
                     <div className="text-left">
                       <div className="text-sm text-gray-500 mb-1">Cib dizaynı</div>
@@ -776,7 +610,9 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                       </div>
                     </div>
                   </div>
-                  <ChevronRight size={24} className="text-violet-500 group-hover:translate-x-1 transition-transform" />
+                  <svg className="w-5 h-5 text-violet-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
             )}
@@ -784,29 +620,27 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
             {/* Navigation */}
             <div className="flex gap-3 mt-8">
               {step > 0 && (
-                <button
-                  onClick={() => setStep(step - 1)}
-                  className="flex-1 py-3 border-2 border-gray-300 rounded-xl hover:border-black transition font-semibold"
-                >
+                <button onClick={() => setStep(step - 1)} className="flex-1 py-3 border-2 border-gray-300 rounded-xl hover:border-black transition font-semibold">
                   Geri
                 </button>
               )}
-              {step < 5 ? (
+              {step < TOTAL_STEPS - 1 ? (
                 <button
                   onClick={() => setStep(step + 1)}
                   disabled={!isStepComplete()}
                   className={`flex-1 py-3 rounded-xl font-semibold transition ${
-                    isStepComplete()
-                      ? "bg-black text-white hover:bg-gray-800"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    isStepComplete() ? "bg-black text-white hover:bg-gray-800" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
                   Növbəti
                 </button>
               ) : (
                 <button
-                  onClick={handleCreatePerfume}
-                  className="flex-1 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition font-semibold"
+                  onClick={() => setShowSuccessModal(true)}
+                  disabled={!isStepComplete()}
+                  className={`flex-1 py-3 rounded-xl font-semibold transition ${
+                    isStepComplete() ? "bg-black text-white hover:bg-gray-800" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  }`}
                 >
                   Hazırla
                 </button>
@@ -816,322 +650,15 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
         </div>
       </div>
 
-      {/* Perfume Modal - Keep existing design */}
-      {showPerfumeModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div 
-            className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
-            style={{ animation: "scaleIn 0.3s ease-out" }}
-          >
-            {/* Header */}
-            <div className="relative p-8 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-rose-50">
-              {/* Decorative Background */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-200/30 to-transparent rounded-full blur-3xl"></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-r from-orange-500 to-rose-500 rounded-xl shadow-lg">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900">Qoxu seç</h3>
-                      <p className="text-sm text-gray-600">Sevimli qoxunuzu tapın</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowPerfumeModal(false)}
-                    className="p-3 hover:bg-white/80 rounded-xl transition-all duration-300 hover:rotate-90 group"
-                  >
-                    <X size={24} className="text-gray-600 group-hover:text-orange-500" />
-                  </button>
-                </div>
-
-                {/* Search Bar */}
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Qoxu axtar..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-400"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="overflow-y-auto p-8 max-h-[calc(90vh-200px)] custom-scrollbar">
-              {Object.entries(filteredPerfumes).length > 0 ? (
-                Object.entries(filteredPerfumes).map(([category, perfumes], categoryIndex) => (
-                  <div 
-                    key={category} 
-                    className="mb-8 last:mb-0"
-                    style={{ animation: `fadeInUp 0.4s ease-out ${categoryIndex * 0.1}s both` }}
-                  >
-                    {/* Category Header */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="h-1 w-12 bg-gradient-to-r from-orange-500 to-rose-500 rounded-full"></div>
-                      <h4 className="text-lg font-bold text-gray-900">{category}</h4>
-                      <div className="flex-1 h-px bg-gray-200"></div>
-                      <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        {perfumes.length} qoxu
-                      </span>
-                    </div>
-
-                    {/* Perfume Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                      {perfumes.map((perfume, index) => (
-                        <button
-                          key={perfume.name}
-                          onClick={() => {
-                            setPerfumeData({
-                              ...perfumeData,
-                              selectedPerfume: perfume.name,
-                              perfumeCategory: category,
-                            });
-                            setShowPerfumeModal(false);
-                            setSearchTerm("");
-                          }}
-                          className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 ${
-                            perfumeData.selectedPerfume === perfume.name
-                              ? "border-orange-500 bg-gradient-to-br from-orange-50 to-rose-50 shadow-lg scale-105"
-                              : "border-gray-200 hover:border-orange-300 hover:shadow-md hover:scale-105 bg-white"
-                          }`}
-                          style={{ animation: `scaleIn 0.3s ease-out ${index * 0.05}s both` }}
-                        >
-                          {/* Selected Badge */}
-                          {perfumeData.selectedPerfume === perfume.name && (
-                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-orange-500 to-rose-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          )}
-
-                          {/* Image Container */}
-                          <div className="relative aspect-square mb-3 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                            <img
-                              src={perfume.image}
-                              alt={perfume.name}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            />
-                            {/* Overlay on Hover */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          </div>
-
-                          {/* Perfume Name */}
-                          <div className="text-center">
-                            <div className={`text-sm font-semibold transition-colors duration-300 ${
-                              perfumeData.selectedPerfume === perfume.name
-                                ? "text-orange-600"
-                                : "text-gray-700 group-hover:text-gray-900"
-                            }`}>
-                              {perfume.name}
-                            </div>
-                          </div>
-
-                          {/* Glow Effect on Selected */}
-                          {perfumeData.selectedPerfume === perfume.name && (
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/20 to-rose-500/20 blur-xl -z-10"></div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-500 text-lg font-semibold">Heç bir nəticə tapılmadı</p>
-                  <p className="text-gray-400 text-sm mt-2">Başqa bir açar söz ilə cəhd edin</p>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-6 border-t border-gray-100 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  {perfumeData.selectedPerfume ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                      Seçildi: <span className="font-semibold text-gray-900">{perfumeData.selectedPerfume}</span>
-                    </span>
-                  ) : (
-                    <span>Qoxu seçin</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => {
-                    setShowPerfumeModal(false);
-                    setSearchTerm("");
-                  }}
-                  className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105"
-                >
-                  Təsdiq et
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Custom Styles */}
-          <style>{`
-            @keyframes fadeIn {
-              from {
-                opacity: 0;
-              }
-              to {
-                opacity: 1;
-              }
-            }
-
-            @keyframes scaleIn {
-              from {
-                opacity: 0;
-                transform: scale(0.95);
-              }
-              to {
-                opacity: 1;
-                transform: scale(1);
-              }
-            }
-
-            @keyframes fadeInUp {
-              from {
-                opacity: 0;
-                transform: translateY(20px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-
-            .custom-scrollbar::-webkit-scrollbar {
-              width: 8px;
-            }
-
-            .custom-scrollbar::-webkit-scrollbar-track {
-              background: #f1f1f1;
-              border-radius: 10px;
-            }
-
-            .custom-scrollbar::-webkit-scrollbar-thumb {
-              background: linear-gradient(to bottom, #f97316, #fb923c);
-              border-radius: 10px;
-            }
-
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-              background: linear-gradient(to bottom, #ea580c, #f97316);
-            }
-          `}</style>
-        </div>
-      )}
-
-      {/* Magnifier Modal - Enhanced Design */}
-      {showMagnifierModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-            <div className="relative p-8 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-teal-50">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-200/30 to-transparent rounded-full blur-3xl"></div>
-              
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Gücləndirici seç</h3>
-                    <p className="text-sm text-gray-600">Qoxunu gücləndir</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowMagnifierModal(false)}
-                  className="p-3 hover:bg-white/80 rounded-xl transition-all duration-300 hover:rotate-90 group"
-                >
-                  <X size={24} className="text-gray-600 group-hover:text-emerald-500" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-160px)]">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {getAvailableMagnifiers().map((mag, index) => (
-                  <button
-                    key={mag.name}
-                    onClick={() => {
-                      setPerfumeData({ ...perfumeData, magnifier: mag.name });
-                      setShowMagnifierModal(false);
-                    }}
-                    className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 ${
-                      perfumeData.magnifier === mag.name
-                        ? "border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-lg scale-105"
-                        : "border-gray-200 hover:border-emerald-300 hover:shadow-md hover:scale-105 bg-white"
-                    }`}
-                    style={{ animation: `scaleIn 0.3s ease-out ${index * 0.1}s both` }}
-                  >
-                    {perfumeData.magnifier === mag.name && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
-                        <Check size={14} className="text-white" />
-                      </div>
-                    )}
-                    <div className="relative aspect-square mb-4 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                      <img
-                        src={mag.image}
-                        alt={mag.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                    <div className={`text-center font-semibold transition-colors ${
-                      perfumeData.magnifier === mag.name ? "text-emerald-600" : "text-gray-700"
-                    }`}>
-                      {mag.name}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {getAvailableMagnifiers().length === 0 && (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-500 text-lg font-semibold">Əvvəlcə qoxu seçin</p>
-                  <p className="text-gray-400 text-sm mt-2">Gücləndirici seçmək üçün qoxu seçməlisiniz</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Design Modal - Enhanced */}
+      {/* ── Design Modal ── */}
       {showDesignModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl">
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl anim-scale">
             <div className="relative p-8 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-amber-200/30 to-transparent rounded-full blur-3xl"></div>
-              
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </div>
@@ -1140,60 +667,34 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                     <p className="text-xs text-gray-600">Cib və qabda görünəcək</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowDesignModal(false)}
-                  className="p-2 hover:bg-white/80 rounded-xl transition-all duration-300 hover:rotate-90"
-                >
+                <button onClick={() => setShowDesignModal(false)} className="p-2 hover:bg-white/80 rounded-xl transition hover:rotate-90">
                   <X size={20} className="text-gray-600" />
                 </button>
               </div>
             </div>
-
             <div className="p-8">
-              <div className="mb-6">
-                <input
-                  type="text"
-                  placeholder="Mətn..."
-                  maxLength={15}
-                  value={perfumeData.engraving}
-                  onChange={(e) =>
-                    setPerfumeData({ ...perfumeData, engraving: e.target.value })
-                  }
-                  className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <div className="text-xs text-gray-500">
-                    {perfumeData.engraving.length > 0 ? "✓ Mətn əlavə edildi" : "İstəyə bağlı"}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {perfumeData.engraving.length}/15
-                  </div>
-                </div>
-                {perfumeData.engraving && (
-                  <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-xs text-amber-700 flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
-                      </svg>
-                      <span>Önizləmədə mətni sürüşdürərək yerini dəyişdirin</span>
-                    </p>
-                  </div>
-                )}
+              <input
+                type="text"
+                placeholder="Mətn..."
+                maxLength={15}
+                value={perfumeData.engraving}
+                onChange={(e) => setPerfumeData({ ...perfumeData, engraving: e.target.value })}
+                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all mb-2"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mb-4">
+                <span>{perfumeData.engraving.length > 0 ? "✓ Mətn əlavə edildi" : "İstəyə bağlı"}</span>
+                <span>{perfumeData.engraving.length}/15</span>
               </div>
-
+              {perfumeData.engraving && (
+                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700">
+                  Önizləmədə mətni sürüşdürərək yerini dəyişdirin
+                </div>
+              )}
               <div className="flex gap-3">
-                <button
-                  onClick={() =>
-                    setPerfumeData({ ...perfumeData, engraving: "" })
-                  }
-                  className="flex-1 py-3 border-2 border-gray-200 rounded-xl hover:border-gray-400 transition font-semibold"
-                >
+                <button onClick={() => setPerfumeData({ ...perfumeData, engraving: "" })} className="flex-1 py-3 border-2 border-gray-200 rounded-xl hover:border-gray-400 transition font-semibold">
                   Təmizlə
                 </button>
-                <button
-                  onClick={() => setShowDesignModal(false)}
-                  className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-semibold"
-                >
+                <button onClick={() => setShowDesignModal(false)} className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg transition font-semibold">
                   Saxla
                 </button>
               </div>
@@ -1202,13 +703,11 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
         </div>
       )}
 
-      {/* Pocket Modal - New Modal */}
+      {/* ── Pocket Modal ── */}
       {showPocketModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl anim-scale">
             <div className="relative p-8 border-b border-gray-100 bg-gradient-to-r from-violet-50 to-purple-50">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-200/30 to-transparent rounded-full blur-3xl"></div>
-              
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl shadow-lg">
@@ -1221,61 +720,33 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                     <p className="text-sm text-gray-600">Qoxu cibi üçün dizayn</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowPocketModal(false)}
-                  className="p-3 hover:bg-white/80 rounded-xl transition-all duration-300 hover:rotate-90 group"
-                >
+                <button onClick={() => setShowPocketModal(false)} className="p-3 hover:bg-white/80 rounded-xl transition hover:rotate-90 group">
                   <X size={24} className="text-gray-600 group-hover:text-violet-500" />
                 </button>
               </div>
             </div>
-
             <div className="p-8 overflow-y-auto max-h-[calc(90vh-160px)]">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {Object.entries(POCKET_IMAGES).map(([key, img], index) => (
+                {Object.entries(POCKET_IMAGES).map(([key, img], idx) => (
                   <button
                     key={key}
-                    onClick={() => {
-                      setPerfumeData({ ...perfumeData, pocketImage: key });
-                      setShowPocketModal(false);
-                    }}
-                    className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 ${
+                    onClick={() => { setPerfumeData({ ...perfumeData, pocketImage: key }); setShowPocketModal(false); }}
+                    className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 anim-scale ${
                       perfumeData.pocketImage === key
                         ? "border-violet-500 bg-gradient-to-br from-violet-50 to-purple-50 shadow-lg scale-105"
                         : "border-gray-200 hover:border-violet-300 hover:shadow-md hover:scale-105 bg-white"
                     }`}
-                    style={{ animation: `scaleIn 0.3s ease-out ${index * 0.1}s both` }}
+                    style={{ animationDelay: `${idx * 0.07}s` }}
                   >
                     {perfumeData.pocketImage === key && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
                         <Check size={14} className="text-white" />
                       </div>
                     )}
-                    <div className="relative aspect-square mb-4 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                      <img
-                        src={img}
-                        alt={`Pocket ${key}`}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      {perfumeData.engraving && (
-                        <div 
-                          className="absolute"
-                          style={{
-                            left: `${perfumeData.textPosition.x}%`,
-                            top: `${perfumeData.textPosition.y}%`,
-                            transform: 'translate(-50%, -50%)',
-                          }}
-                        >
-                          <p className="text-xs font-bold text-white drop-shadow-lg">
-                            {perfumeData.engraving}
-                          </p>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="aspect-square mb-4 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                      <img src={img as string} alt={`Pocket ${key}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     </div>
-                    <div className={`text-center font-semibold transition-colors ${
-                      perfumeData.pocketImage === key ? "text-violet-600" : "text-gray-700"
-                    }`}>
+                    <div className={`text-center font-semibold transition-colors ${perfumeData.pocketImage === key ? "text-violet-600" : "text-gray-700"}`}>
                       Dizayn {key}
                     </div>
                   </button>
@@ -1286,10 +757,10 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
         </div>
       )}
 
-      {/* Success Modal */}
+      {/* ── Success Modal ── */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center">
+          <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center anim-scale">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check size={32} className="text-green-600" />
             </div>
@@ -1297,20 +768,19 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
             <p className="text-gray-600 mb-6">Sifarişiniz yaradıldı</p>
 
             <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
-              <div className="font-semibold mb-3">
-                {perfumeData.selectedPerfume}
-              </div>
+              <div className="font-semibold mb-2">Ölçü: {perfumeData.bottleSize}ML</div>
               <div className="text-sm text-gray-600 space-y-1">
-                <div>Ölçü: {perfumeData.bottleSize}ML</div>
-                <div>Gücləndirici: {perfumeData.magnifier}</div>
-                {perfumeData.engraving && (
-                  <div>Həkk: "{perfumeData.engraving}"</div>
-                )}
-                {perfumeData.pocketImage && (
-                  <div>Cib: Dizayn {perfumeData.pocketImage}</div>
-                )}
+                {perfumeData.ingredients.map((ing) => (
+                  <div key={ing}>{ing}: {perfumeData.proportions[ing] ?? 0}%</div>
+                ))}
+                {perfumeData.engraving && <div>Həkk: "{perfumeData.engraving}"</div>}
+                {perfumeData.pocketImage && <div>Cib: Dizayn {perfumeData.pocketImage}</div>}
               </div>
               <div className="text-2xl font-bold mt-3">{getPrice()} AZN</div>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 mb-4">
+              Sifariş saatları: <strong>{ORDER_HOURS}</strong>
             </div>
 
             <div className="space-y-3 mb-4">
@@ -1319,9 +789,8 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
                 className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 font-semibold"
               >
                 <MessageCircle size={20} />
-                WhatsApp
+                WhatsApp ilə sifariş et
               </button>
-
               <button
                 onClick={generatePDF}
                 className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 font-semibold"
@@ -1331,10 +800,7 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
               </button>
             </div>
 
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="text-gray-500 hover:text-gray-700 text-sm"
-            >
+            <button onClick={() => setShowSuccessModal(false)} className="text-gray-500 hover:text-gray-700 text-sm">
               Bağla
             </button>
           </div>
