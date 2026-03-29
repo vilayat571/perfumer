@@ -5,9 +5,9 @@ const Intro = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const perfumeImages = [
-    "https://manage.parfumbar.az/cdn/storage/products_images/oG5ofuyhFrydFtLgW/HD/oG5ofuyhFrydFtLgW.webp",
-    "https://manage.parfumbar.az/cdn/storage/products_images/6e2niXqChz7pqvKvu/HD/6e2niXqChz7pqvKvu.webp",
-    "https://manage.parfumbar.az/cdn/storage/products_images/ram8S2HRk8GZAfmNZ/HD/ram8S2HRk8GZAfmNZ.webp",
+    "https://manage.parfumbar.az/cdn/storage/products_images/CRsF3D8m5FocXdBwC/HD/CRsF3D8m5FocXdBwC.webp",
+    "https://manage.parfumbar.az/cdn/storage/products_images/dwc6iL6wjnHm7ksZS/HD/dwc6iL6wjnHm7ksZS.webp",
+    "https://manage.parfumbar.az/cdn/storage/products_images/gRF6PCZ2TBp7HFonA/HD/gRF6PCZ2TBp7HFonA.webp",
   ];
 
   // Auto-slide effect

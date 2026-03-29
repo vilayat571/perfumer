@@ -6,6 +6,7 @@ import {
   POCKET_IMAGES,
 } from "../data/createPerfume";
 import Header from "../components/CreatePerfume/Header";
+import LayoutGroup from "../layout/Layout";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -264,7 +265,8 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50">
+ <LayoutGroup>
+     <div className="min-h-screen bg-gray-50">
       <Header />
 
       {/* Shake + step animations */}
@@ -807,6 +809,7 @@ Sifarişimi təsdiq etmək istəyirəm! ✨
         </div>
       )}
     </div>
+ </LayoutGroup>
   );
 };
 
