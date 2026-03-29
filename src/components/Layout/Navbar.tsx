@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sparkles, Droplets, MessageCircle, Phone } from "lucide-react";
+import {
+  Menu,
+  X,
+  Sparkles,
+  Droplets,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
 
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -23,7 +30,9 @@ const Navbar: React.FC = () => {
   }, [location.pathname]);
 
   const handleWhatsApp = () => {
-    const message = encodeURIComponent("Salam! ZANA haqqında məlumat almaq istəyirəm.");
+    const message = encodeURIComponent(
+      "Salam! ZANA haqqında məlumat almaq istəyirəm.",
+    );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
   };
 
@@ -32,7 +41,7 @@ const Navbar: React.FC = () => {
   };
 
   const navItems = [
-    { name: "Mağaza", href: "/shop" },
+    { name: "Mağaza", href: "https://parfumbar.az/" },
     { name: "Qoxular", href: "/scents" },
     { name: "Biz kimik?", href: "/about" },
     { name: "Əlaqə", href: "/contact" },
@@ -48,7 +57,6 @@ const Navbar: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-
           {/* Logo */}
           <div className="shrink-0 group">
             <Link
@@ -68,6 +76,7 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item, index) => (
               <Link
+                target={item.name === "Mağaza" ? "_blank" : undefined}
                 key={item.name}
                 to={item.href}
                 className={`relative px-4 py-2 font-medium transition-all duration-300 group ${
@@ -75,12 +84,16 @@ const Navbar: React.FC = () => {
                     ? "text-orange-500"
                     : "text-gray-700 hover:text-gray-900"
                 }`}
-                style={{ animation: `slideDown 0.5s ease-out ${index * 0.1}s both` }}
+                style={{
+                  animation: `slideDown 0.5s ease-out ${index * 0.1}s both`,
+                }}
               >
                 <span className="relative z-10">{item.name}</span>
                 <span
                   className={`absolute inset-0 bg-gradient-to-r from-orange-100 to-amber-100 rounded-lg transition-transform duration-300 ease-out ${
-                    isActive(item.href) ? "scale-100" : "scale-0 group-hover:scale-100"
+                    isActive(item.href)
+                      ? "scale-100"
+                      : "scale-0 group-hover:scale-100"
                   }`}
                 />
                 {isActive(item.href) && (
@@ -92,7 +105,6 @@ const Navbar: React.FC = () => {
 
           {/* Right Side */}
           <div className="flex items-center gap-2">
-
             {/* WhatsApp */}
             <button
               onClick={handleWhatsApp}
@@ -126,7 +138,11 @@ const Navbar: React.FC = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Menyunu aç/bağla"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>

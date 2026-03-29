@@ -6,7 +6,7 @@ const Footer = () => {
 
   const quickLinks = [
     { name: "Ana Səhifə", href: "/" },
-    { name: "Mağaza", href: "/shop" },
+    { name: "Mağaza", href: "https://parfumbar.az" },
     { name: "Qoxular", href: "/scents" },
     { name: "Ətir Yarat", href: "/create-perfume" },
     { name: "Haqqımızda", href: "/about" },
